@@ -7,11 +7,26 @@
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     body { margin: 0; background: #0b0f14; color: #e6edf3; }
-    header { padding: 18px 22px; border-bottom: 1px solid #1f2a37; display:flex; gap:12px; align-items:center; }
+    header { padding: 16px 20px; border-bottom: 1px solid #1f2a37; display:flex; gap:12px; align-items:center; }
     .brand { font-weight: 800; letter-spacing: 0.5px; }
     .tagline { opacity: .75; font-size: 12px; }
 
-    main { display: grid; grid-template-columns: 420px 1fr; gap: 16px; padding: 16px; align-items:start; }
+    /* Wrapper central */
+    .wrap { max-width: 1600px; margin: 0 auto; }
+
+    /* ===== Desktop layout 3 colunas =====
+       1) Sidebar (fixa)
+       2) Feed/Explorar (centro e mais largo)
+       3) Viewer (direita)
+    */
+    main.wrap {
+      display: grid;
+      grid-template-columns: minmax(460px, 560px) minmax(560px, 760px) minmax(420px, 560px);
+      gap: 16px;
+      padding: 16px;
+      align-items:start;
+    }
+
     .card { background: #0f1620; border: 1px solid #1f2a37; border-radius: 14px; padding: 14px; }
     .cardTitle { display:flex; align-items:center; justify-content:space-between; gap:10px; }
     input, textarea, select, button {
@@ -30,10 +45,11 @@
     .ghost { background: transparent; border-color: #2a3a52; }
 
     .kpis { display:flex; gap:10px; flex-wrap:wrap; }
-    .kpi { background:#0b111a; border:1px solid #203044; border-radius: 14px; padding: 10px 12px; min-width: 120px; }
+    .kpi { background:#0b111a; border:1px solid #203044; border-radius: 14px; padding: 10px 12px; min-width: 140px; }
     .kpi .v { font-size: 18px; font-weight: 800; }
     .kpi .l { font-size: 12px; opacity:.75; }
 
+    /* Lists */
     .list { display:flex; flex-direction: column; gap: 10px; }
     .item { border: 1px solid #203044; background:#0b111a; border-radius: 14px; padding: 12px; }
     .item:hover { border-color:#2d425c; }
@@ -41,7 +57,17 @@
     .meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 8px; }
     .clickable { cursor:pointer; }
 
-    .split { display:grid; grid-template-columns: 1fr; gap:16px; }
+    /* Feed cards: no desktop, vira grade */
+    .feedGrid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+    @media (min-width: 1200px){
+      .feedGrid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* Viewer */
     .detailsBox { white-space:pre-wrap; line-height:1.4; }
     .commentBox { display:flex; gap:10px; align-items:flex-start; }
     .commentBox textarea { min-height: 60px; }
@@ -50,22 +76,61 @@
     .comment .when { opacity:.7; font-size:12px; margin-left:6px; }
     .comment .body { white-space:pre-wrap; margin-top:6px; }
 
-    @media (max-width: 980px){ main { grid-template-columns: 1fr; } }
+    .reactRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+    .reactBtn { width:auto; padding: 8px 10px; background: transparent; border-color:#2a3a52; }
+    .reactBtn:hover { filter:none; border-color:#3a5677; }
+
+    /* Header right */
+    .topRight { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; margin-left:auto; }
+    .bell { width:auto; padding: 10px 12px; background: transparent; border-color:#2a3a52; position:relative; }
+    .badge { position:absolute; top:-6px; right:-6px; background:#153a2a; border:1px solid #1f5b40; padding:2px 6px; border-radius:999px; font-size:12px; }
+
+    /* Notifs */
+    .notifPanel { display:none; margin-top:10px; }
+    .notifItem { border:1px solid #203044; background:#0b111a; border-radius:14px; padding:10px; }
+    .notifItem.unread { border-color:#3a5677; }
+    .inline { display:flex; gap:10px; }
+    .inline button { width:auto; }
+
+    /* Tabs */
+    .tabs { display:flex; gap:10px; flex-wrap:wrap; }
+    .tabbtn { width:auto; padding: 10px 12px; }
+    .tabbtn.active { background:#153a2a; border-color:#1f5b40; }
+
+    /* ===== Responsivo =====
+       - Tablet: 2 colunas (sidebar + conteúdo)
+       - Mobile: 1 coluna
+    */
+    @media (max-width: 1300px){
+      main.wrap { grid-template-columns: minmax(460px, 560px) 1fr; }
+      #viewerCard { grid-column: 1 / -1; } /* viewer vai pra baixo */
+    }
+    @media (max-width: 980px){
+      main.wrap { grid-template-columns: 1fr; }
+      .kpi { min-width: 120px; }
+      #viewerCard { grid-column: auto; }
+      .feedGrid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
+
 <body>
-<header>
+<header class="wrap">
   <div>
     <div class="brand">GossipCRM</div>
     <div class="tagline">Enterprise Fofoca Management • Observability • Compliance • Governança de Tias</div>
   </div>
-  <div style="margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+
+  <div class="topRight">
+    <button id="bellBtn" class="bell" style="display:none;">🔔
+      <span id="bellBadge" class="badge" style="display:none;">0</span>
+    </button>
     <span id="who" class="muted"></span>
     <button id="logoutBtn" style="width:auto; display:none;">Sair</button>
   </div>
 </header>
 
-<main>
+<main class="wrap">
   <!-- AUTH -->
   <section class="card" id="authCard">
     <h2 id="authTitle" style="margin-top:0;">Acesso</h2>
@@ -99,25 +164,24 @@
     <div id="authMsg" class="muted" style="margin-top:10px;"></div>
   </section>
 
-  <!-- APP -->
-  <section class="split" id="appCard" style="display:none;">
-    <!-- LEFT: Sidebar -->
-    <section class="card">
-      <div class="cardTitle">
-        <h2 style="margin:0;">Dashboard</h2>
-        <button id="refreshBtn" style="width:auto;">Atualizar</button>
-      </div>
+  <!-- SIDEBAR -->
+  <section class="card" id="sidebarCard" style="display:none;">
+    <div class="cardTitle">
+      <h2 style="margin:0;">Dashboard</h2>
+      <button id="refreshBtn" style="width:auto;">Atualizar</button>
+    </div>
 
-      <div style="height:10px;"></div>
-      <div class="kpis" id="kpis"></div>
+    <div style="height:10px;"></div>
+    <div class="kpis" id="kpis"></div>
 
-      <div style="height:10px;"></div>
-      <div id="profile" class="muted"></div>
+    <div style="height:10px;"></div>
+    <div id="profile" class="muted"></div>
 
-      <div style="height:16px;"></div>
-      <h3 style="margin:0 0 10px 0;">Filtros</h3>
+    <div style="height:14px;"></div>
+    <h3 style="margin:0 0 10px 0;">Filtros</h3>
+
+    <div class="row">
       <input id="q" placeholder="Pesquisar..." />
-      <div style="height:10px;"></div>
       <select id="statusFilter">
         <option value="">Todas</option>
         <option value="LEAD">LEAD</option>
@@ -125,144 +189,177 @@
         <option value="CONFIRMADO">CONFIRMADO</option>
         <option value="ARQUIVADO">ARQUIVADO</option>
       </select>
+    </div>
 
-      <div style="height:18px;"></div>
-      <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
+    <div style="height:10px;"></div>
+    <div class="row">
+      <select id="sort">
+        <option value="hot">Feed: Quentes</option>
+        <option value="new">Feed: Recentes</option>
+        <option value="commented">Feed: Mais comentadas</option>
+      </select>
+      <button id="applyBtn" class="ghost">Aplicar</button>
+    </div>
 
-      <div class="row">
-        <div>
-          <label class="muted">Título</label>
-          <input id="title" placeholder="Ex: Fulano foi visto..." />
-        </div>
-        <div>
-          <label class="muted">Fonte</label>
-          <input id="source" placeholder="Ex: zelador, grupo da família" />
-        </div>
+    <div style="height:18px;"></div>
+    <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
+
+    <div class="row">
+      <div>
+        <label class="muted">Título</label>
+        <input id="title" placeholder="Ex: Fulano foi visto..." />
       </div>
-
-      <div style="height:10px;"></div>
-      <label class="muted">Detalhes</label>
-      <textarea id="details" placeholder="Descreva com seriedade corporativa..."></textarea>
-
-      <div style="height:10px;"></div>
-      <div class="row">
-        <div>
-          <label class="muted">Status</label>
-          <select id="status">
-            <option value="LEAD">LEAD</option>
-            <option value="APURACAO">APURAÇÃO</option>
-            <option value="CONFIRMADO">CONFIRMADO</option>
-            <option value="ARQUIVADO">ARQUIVADO</option>
-          </select>
-        </div>
-        <div>
-          <label class="muted">Confiabilidade (0–100)</label>
-          <input id="cred" type="number" min="0" max="100" value="50"/>
-        </div>
+      <div>
+        <label class="muted">Fonte</label>
+        <input id="source" placeholder="Ex: zelador, grupo da família" />
       </div>
+    </div>
 
+    <div style="height:10px;"></div>
+    <label class="muted">Detalhes</label>
+    <textarea id="details" placeholder="Dica: use @usuario para mencionar alguém 😄"></textarea>
+
+    <div style="height:10px;"></div>
+    <div class="row">
+      <div>
+        <label class="muted">Status</label>
+        <select id="status">
+          <option value="LEAD">LEAD</option>
+          <option value="APURACAO">APURAÇÃO</option>
+          <option value="CONFIRMADO">CONFIRMADO</option>
+          <option value="ARQUIVADO">ARQUIVADO</option>
+        </select>
+      </div>
+      <div>
+        <label class="muted">Confiabilidade (0–100)</label>
+        <input id="cred" type="number" min="0" max="100" value="50"/>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+    <label class="muted">Tags (separadas por vírgula)</label>
+    <input id="tags" placeholder="ouvi falar, fonte confiável, primo do amigo" />
+
+    <div style="height:12px;"></div>
+    <button id="createBtn">Registrar ticket</button>
+    <div id="msg" class="muted" style="margin-top:10px;"></div>
+
+    <div class="notifPanel" id="notifPanel">
       <div style="height:10px;"></div>
-      <label class="muted">Tags (separadas por vírgula)</label>
-      <input id="tags" placeholder="ouvi falar, fonte confiável, primo do amigo" />
+      <h3 style="margin:0 0 10px 0;">Notificações</h3>
+      <div class="list" id="notifs"></div>
+    </div>
+  </section>
+
+  <!-- EXPLORE (CENTRO) -->
+  <section class="card" id="exploreCard" style="display:none;">
+    <div class="cardTitle">
+      <h2 style="margin:0;">Explorar</h2>
+      <div class="tabs">
+        <button id="tabFeed" class="tabbtn active">Feed (grupo)</button>
+        <button id="tabBacklog" class="tabbtn">Meu Backlog</button>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+    <div id="list" class="feedGrid"></div>
+  </section>
+
+  <!-- VIEWER (DIREITA) -->
+  <section class="card" id="viewerCard" style="display:none;">
+    <div class="cardTitle">
+      <h2 style="margin:0;">Visualização</h2>
+      <span class="muted">Detalhes + colaboração</span>
+    </div>
+
+    <div id="viewerEmpty" class="muted" style="margin-top:10px;">
+      Selecione uma fofoca no feed/backlog para ver detalhes e colaborar.
+    </div>
+
+    <div id="viewer" style="display:none; margin-top:10px;">
+      <div class="meta" id="vMeta"></div>
+      <h3 id="vTitle" style="margin: 0 0 8px 0;"></h3>
+      <div id="vDetails" class="detailsBox"></div>
+
+      <div class="reactRow" id="reactRow"></div>
 
       <div style="height:12px;"></div>
-      <button id="createBtn">Registrar ticket</button>
-      <div id="msg" class="muted" style="margin-top:10px;"></div>
-    </section>
+      <div class="meta" id="vTags"></div>
 
-    <!-- RIGHT: Backlog + Viewer -->
-    <section class="card">
+      <div style="height:12px;"></div>
+      <div class="row">
+        <button id="moveBtn">Mover status</button>
+        <button id="deleteBtn" class="danger">Excluir</button>
+      </div>
+      <div id="permHint" class="muted" style="margin-top:8px;"></div>
+
+      <div style="height:18px;"></div>
       <div class="cardTitle">
-        <h2 style="margin:0;">Backlog</h2>
-        <span class="muted">Clique em um item para abrir</span>
+        <h3 style="margin:0;">Comentários</h3>
+        <span id="cCount" class="muted"></span>
       </div>
 
       <div style="height:10px;"></div>
-      <div class="list" id="list"></div>
+      <div class="commentBox">
+        <textarea id="cBody" placeholder="Comente… (use @usuario para mencionar)"></textarea>
+        <button id="cSend" style="width:auto;">Enviar</button>
+      </div>
+      <div id="cMsg" class="muted" style="margin-top:8px;"></div>
+
+      <div style="height:10px;"></div>
+      <div class="list" id="comments"></div>
 
       <div style="height:16px;"></div>
-      <h2 style="margin:0;">Visualização</h2>
-      <div id="viewerEmpty" class="muted" style="margin-top:8px;">
-        Selecione uma fofoca no backlog para ver detalhes e comentar.
-      </div>
-
-      <div id="viewer" style="display:none; margin-top:10px;">
-        <div class="meta" id="vMeta"></div>
-        <h3 id="vTitle" style="margin: 0 0 8px 0;"></h3>
-        <div id="vDetails" class="detailsBox"></div>
-
-        <div style="height:12px;"></div>
-        <div class="meta" id="vTags"></div>
-
-        <div style="height:12px;"></div>
-        <div class="row">
-          <button id="moveBtn">Mover status</button>
-          <button id="deleteBtn" class="danger">Excluir</button>
-        </div>
-
-        <div style="height:18px;"></div>
-        <div class="cardTitle">
-          <h3 style="margin:0;">Comentários</h3>
-          <span id="cCount" class="muted"></span>
-        </div>
-
-        <div style="height:10px;"></div>
-        <div class="commentBox">
-          <textarea id="cBody" placeholder="Escreva um comentário..."></textarea>
-          <button id="cSend" style="width:auto;">Enviar</button>
-        </div>
-        <div id="cMsg" class="muted" style="margin-top:8px;"></div>
-
-        <div style="height:10px;"></div>
-        <div class="list" id="comments"></div>
-
-        <div style="height:16px;"></div>
-        <h3 style="margin:0 0 10px 0;">Audit Log</h3>
-        <div class="list" id="audit"></div>
-
-        <div style="height:16px;"></div>
-        <h3 style="margin:0 0 10px 0;">Leaderboard</h3>
-        <div class="list" id="leaderboard"></div>
-      </div>
-    </section>
+      <h3 style="margin:0 0 10px 0;">Leaderboard</h3>
+      <div class="list" id="leaderboard"></div>
+    </div>
   </section>
 </main>
 
 <script>
 let TOKEN = null;
-let USERNAME = null;
-let MODE = "login"; // login | register
+let MY = null; // /api/me
+let MODE = "login";
 let SELECTED_ID = null;
 let SELECTED_GOSSIP = null;
+let ACTIVE_TAB = "feed"; // feed | backlog
+
+const REACTS = [
+  {k:"LIKE", e:"👍", t:"Confirmo"},
+  {k:"LOL",  e:"😂", t:"KKK"},
+  {k:"WOW",  e:"😮", t:"Chocado"},
+  {k:"SUS",  e:"🤔", t:"Suspeito"},
+  {k:"FIRE", e:"🔥", t:"Quente"},
+];
 
 function authHeader(){ return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {}; }
 
 async function api(path, opts={}){
-  const res = await fetch(path, {
-    ...opts,
-    headers: { "Content-Type":"application/json", ...(opts.headers||{}), ...authHeader() }
-  });
+  const res = await fetch(path, { ...opts, headers: { "Content-Type":"application/json", ...(opts.headers||{}), ...authHeader() }});
   const text = await res.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-
   if(!res.ok){
     let msg = "Erro " + res.status;
     if (data && data.detail) {
-      if (Array.isArray(data.detail)) {
-        msg = data.detail.map(e => `${(e.loc||[]).slice(-1)[0]||"campo"}: ${e.msg}`).join(" | ");
-      } else msg = data.detail;
+      if (Array.isArray(data.detail)) msg = data.detail.map(e => `${(e.loc||[]).slice(-1)[0]||"campo"}: ${e.msg}`).join(" | ");
+      else msg = data.detail;
     }
     throw new Error(msg);
   }
   return data;
 }
 
+function fmtTs(ts){ return new Date(ts * 1000).toLocaleString(); }
+function escapeHtml(str){ return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
 function setAuthUI(logged){
   document.getElementById("authCard").style.display = logged ? "none" : "block";
-  document.getElementById("appCard").style.display = logged ? "grid" : "none";
+  document.getElementById("sidebarCard").style.display = logged ? "block" : "none";
+  document.getElementById("exploreCard").style.display = logged ? "block" : "none";
+  document.getElementById("viewerCard").style.display = logged ? "block" : "none";
   document.getElementById("logoutBtn").style.display = logged ? "inline-block" : "none";
-  document.getElementById("who").textContent = logged ? ("Logado como: " + USERNAME) : "";
+  document.getElementById("bellBtn").style.display = logged ? "inline-block" : "none";
 }
 
 function setMode(mode){
@@ -278,8 +375,6 @@ function setMode(mode){
   document.getElementById("authMsg").textContent = "";
 }
 
-function fmtTs(ts){ return new Date(ts * 1000).toLocaleString(); }
-
 function renderKpis(d){
   const k = document.getElementById("kpis");
   k.innerHTML = "";
@@ -292,52 +387,81 @@ function renderKpis(d){
   k.insertAdjacentHTML("beforeend", mk(d.avg_credibility.toFixed(1), "Credibilidade média"));
 }
 
-function backlogItem(g){
-  const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill">${t}</span>`).join(" ");
+function score(g){
+  const r = g.reactions || {};
+  return (r.LIKE||0)*1 + (r.LOL||0)*2 + (r.WOW||0)*2 + (r.SUS||0)*1 + (r.FIRE||0)*3 + (g.comment_count||0)*2;
+}
+
+function itemCard(g){
   const active = (SELECTED_ID === g.id) ? "style='border-color:#3a5677;'" : "";
+  const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join(" ");
+  const r = g.reactions || {};
+  const reactSummary =
+    `<span class="pill">👍 ${r.LIKE||0}</span>
+     <span class="pill">😂 ${r.LOL||0}</span>
+     <span class="pill">😮 ${r.WOW||0}</span>
+     <span class="pill">🤔 ${r.SUS||0}</span>
+     <span class="pill">🔥 ${r.FIRE||0}</span>`;
+
   return `
   <div class="item clickable" ${active} onclick="openGossip(${g.id})">
-    <h3>${g.title}</h3>
+    <h3>${escapeHtml(g.title)}</h3>
     <div class="meta">
       <span class="pill">${g.status}</span>
       <span class="pill">Cred ${g.credibility}</span>
-      <span class="pill">Por: ${g.created_by}</span>
+      <span class="pill">Por: ${escapeHtml(g.created_by)}</span>
       <span class="pill">💬 ${g.comment_count}</span>
+      <span class="pill">⭐ ${score(g)}</span>
     </div>
-    <div class="muted">${g.source} • ${fmtTs(g.updated_at)}</div>
-    <div style="margin-top:8px;">${tags}</div>
+    <div class="meta">${reactSummary}</div>
+    <div class="muted">${escapeHtml(g.source)} • ${fmtTs(g.updated_at)}</div>
+    <div style="margin-top:8px;">${tags || `<span class="muted">Sem tags</span>`}</div>
   </div>`;
 }
 
-async function refresh(){
+function setTab(tab){
+  ACTIVE_TAB = tab;
+  document.getElementById("tabFeed").classList.toggle("active", tab==="feed");
+  document.getElementById("tabBacklog").classList.toggle("active", tab==="backlog");
+  clearViewer();
+  refreshList();
+}
+
+async function refreshList(){
   const q = document.getElementById("q").value.trim();
   const st = document.getElementById("statusFilter").value;
+  const sort = document.getElementById("sort").value;
 
+  let data = [];
+  if (ACTIVE_TAB === "feed") {
+    const url = new URL(location.origin + "/api/feed");
+    if(q) url.searchParams.set("q", q);
+    if(st) url.searchParams.set("status_filter", st);
+    url.searchParams.set("sort", sort);
+    data = await api(url.pathname + url.search);
+    if (sort === "hot") data.sort((a,b)=>score(b)-score(a));
+  } else {
+    const url = new URL(location.origin + "/api/backlog");
+    if(q) url.searchParams.set("q", q);
+    if(st) url.searchParams.set("status_filter", st);
+    data = await api(url.pathname + url.search);
+  }
+
+  document.getElementById("list").innerHTML =
+    data.map(itemCard).join("") || `<div class="muted">Nada por aqui ainda…</div>`;
+}
+
+async function refreshHeaderAndStats(){
   const dash = await api("/api/dashboard");
   renderKpis(dash);
 
-  const me = await api("/api/me");
-  USERNAME = me.label;
-  document.getElementById("who").textContent = `Logado como: ${me.label} • Título: ${me.title} • Fofocas: ${me.total_gossips}`;
+  MY = await api("/api/me");
+  document.getElementById("who").textContent = `Logado como: ${MY.label} • Título: ${MY.title} • Fofocas: ${MY.total_gossips}`;
 
-  const medals = (me.badges||[]).map(b => `<span class="pill">${b}</span>`).join(" ");
+  const medals = (MY.badges||[]).map(b => `<span class="pill">${escapeHtml(b)}</span>`).join(" ");
   document.getElementById("profile").innerHTML = medals
     ? `Conquistas: ${medals}`
     : `<span class="muted">Conquistas: nenhuma ainda… poste mais babados 😄</span>`;
-
-  const url = new URL(location.origin + "/api/gossips");
-  if(q) url.searchParams.set("q", q);
-  if(st) url.searchParams.set("status_filter", st);
-  const gossips = await api(url.pathname + url.search);
-
-  document.getElementById("list").innerHTML = gossips.map(backlogItem).join("");
-
-  // mantém seleção se existir
-  if (SELECTED_ID) {
-    const still = gossips.find(x => x.id === SELECTED_ID);
-    if (still) await openGossip(SELECTED_ID, true);
-    else clearViewer();
-  }
 }
 
 function clearViewer(){
@@ -347,7 +471,7 @@ function clearViewer(){
   document.getElementById("viewer").style.display = "none";
 }
 
-async function openGossip(id, silent=false){
+async function openGossip(id){
   SELECTED_ID = id;
   SELECTED_GOSSIP = await api("/api/gossips/" + id);
 
@@ -360,64 +484,93 @@ async function openGossip(id, silent=false){
   document.getElementById("vMeta").innerHTML = `
     <span class="pill">Status: ${SELECTED_GOSSIP.status}</span>
     <span class="pill">Cred: ${SELECTED_GOSSIP.credibility}</span>
-    <span class="pill">Fonte: ${SELECTED_GOSSIP.source}</span>
-    <span class="pill">Por: ${SELECTED_GOSSIP.created_by}</span>
+    <span class="pill">Fonte: ${escapeHtml(SELECTED_GOSSIP.source)}</span>
+    <span class="pill">Por: ${escapeHtml(SELECTED_GOSSIP.created_by)}</span>
     <span class="pill">Criado: ${fmtTs(SELECTED_GOSSIP.created_at)}</span>
     <span class="pill">Atualizado: ${fmtTs(SELECTED_GOSSIP.updated_at)}</span>
   `;
 
-  const tags = (SELECTED_GOSSIP.tags||[]).map(t=>`<span class="pill">${t}</span>`).join(" ");
+  const tags = (SELECTED_GOSSIP.tags||[]).map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join(" ");
   document.getElementById("vTags").innerHTML = tags || `<span class="muted">Sem tags</span>`;
+
+  renderReactions();
+
+  // Backend já faz o bloqueio com 403; aqui é só UX:
+  document.getElementById("moveBtn").disabled = false;
+  document.getElementById("deleteBtn").disabled = false;
+  document.getElementById("permHint").textContent =
+    "Obs: só o autor consegue mover/excluir (o servidor bloqueia).";
 
   document.getElementById("cBody").value = "";
   document.getElementById("cMsg").textContent = "";
 
   await loadComments();
-  await loadAuditAndLeaderboard();
+  await loadLeaderboard();
+  await refreshList();
+}
 
-  if (!silent) await refresh(); // repinta backlog com item selecionado
+function renderReactions(){
+  const r = SELECTED_GOSSIP.reactions || {};
+  document.getElementById("reactRow").innerHTML = REACTS.map(x => `
+    <button class="reactBtn" onclick="toggleReaction('${x.k}')">${x.e} ${x.t} • ${(r[x.k]||0)}</button>
+  `).join("");
+}
+
+async function toggleReaction(key){
+  if(!SELECTED_ID) return;
+  const out = await api(`/api/gossips/${SELECTED_ID}/reactions/toggle`, {
+    method:"POST",
+    body: JSON.stringify({reaction: key})
+  });
+  SELECTED_GOSSIP.reactions = out.reactions;
+  renderReactions();
+  await refreshList();
 }
 
 async function loadComments(){
   if(!SELECTED_ID) return;
   const comments = await api(`/api/gossips/${SELECTED_ID}/comments`);
   document.getElementById("cCount").textContent = `${comments.length} comentário(s)`;
-  document.getElementById("comments").innerHTML = comments.map(c => `
-    <div class="comment">
-      <div><span class="who">${c.author}</span><span class="when">${fmtTs(c.created_at)}</span></div>
-      <div class="body">${escapeHtml(c.body)}</div>
-    </div>
-  `).join("") || `<div class="muted">Nenhum comentário ainda… seja o primeiro 😄</div>`;
+
+  document.getElementById("comments").innerHTML = comments.map(c => {
+    const body = highlightMentions(escapeHtml(c.body));
+    return `
+      <div class="comment">
+        <div><span class="who">${escapeHtml(c.author)}</span><span class="when">${fmtTs(c.created_at)}</span></div>
+        <div class="body">${body}</div>
+      </div>`;
+  }).join("") || `<div class="muted">Nenhum comentário ainda… seja o primeiro 😄</div>`;
 }
 
-async function loadAuditAndLeaderboard(){
-  const audit = await api("/api/audit?limit=12");
-  document.getElementById("audit").innerHTML = audit.map(x => `
-    <div class="item">
-      <div class="meta">
-        <span class="pill">${fmtTs(x.ts)}</span>
-        <span class="pill">${x.user}</span>
-        <span class="pill">${x.action}</span>
-        <span class="pill">${x.entity}#${x.entity_id ?? "-"}</span>
-      </div>
-      <div class="muted">${x.meta}</div>
-    </div>
-  `).join("");
+function highlightMentions(html){
+  return html.replaceAll(/@([a-zA-Z0-9_]{3,20})/g, `<span class="pill">@$1</span>`);
+}
 
+async function loadLeaderboard(){
   const lb = await api("/api/leaderboard?limit=10");
   document.getElementById("leaderboard").innerHTML = lb.map((x, i) => `
     <div class="item">
       <div class="meta">
         <span class="pill">#${i+1}</span>
-        <span class="pill">${x.label}</span>
+        <span class="pill">${escapeHtml(x.label)}</span>
         <span class="pill">${x.total} fofocas</span>
       </div>
     </div>
   `).join("");
 }
 
-function escapeHtml(str){
-  return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+async function sendComment(){
+  if(!SELECTED_ID) return;
+  const body = document.getElementById("cBody").value.trim();
+  if(body.length < 1){
+    document.getElementById("cMsg").textContent = "Escreva algo antes de enviar.";
+    return;
+  }
+  await api(`/api/gossips/${SELECTED_ID}/comments`, { method:"POST", body: JSON.stringify({body}) });
+  document.getElementById("cBody").value = "";
+  document.getElementById("cMsg").textContent = "Comentário enviado ✅";
+  await openGossip(SELECTED_ID);
+  await refreshNotifications();
 }
 
 async function create(){
@@ -443,16 +596,22 @@ async function create(){
   document.getElementById("details").value = "";
   document.getElementById("tags").value = "";
 
-  await refresh();
+  await refreshHeaderAndStats();
+  await refreshList();
   await openGossip(created.id);
 }
 
 async function delSelected(){
   if(!SELECTED_ID) return;
-  if(!confirm("Excluir esse ticket?")) return;
-  await api("/api/gossips/" + SELECTED_ID, { method:"DELETE" });
+  if(!confirm("Excluir essa fofoca?")) return;
+  try{
+    await api("/api/gossips/" + SELECTED_ID, { method:"DELETE" });
+  }catch(e){
+    alert(e.message);
+  }
   clearViewer();
-  await refresh();
+  await refreshHeaderAndStats();
+  await refreshList();
 }
 
 async function moveSelected(){
@@ -461,27 +620,71 @@ async function moveSelected(){
   const i = order.indexOf(SELECTED_GOSSIP.status);
   const next = order[(i+1)%order.length];
 
-  const payload = { ...SELECTED_GOSSIP, status: next };
-  await api("/api/gossips/" + SELECTED_ID, { method:"PATCH", body: JSON.stringify(payload) });
-  await openGossip(SELECTED_ID, true);
-  await refresh();
-}
-
-async function sendComment(){
-  if(!SELECTED_ID) return;
-  const body = document.getElementById("cBody").value.trim();
-  if(body.length < 1){
-    document.getElementById("cMsg").textContent = "Escreva algo antes de enviar.";
-    return;
+  const payload = { ...SELECTED_GOSSIP, status: next, tags: (SELECTED_GOSSIP.tags||[]) };
+  try{
+    const updated = await api("/api/gossips/" + SELECTED_ID, { method:"PATCH", body: JSON.stringify(payload) });
+    SELECTED_GOSSIP = updated;
+    await openGossip(SELECTED_ID);
+  }catch(e){
+    alert(e.message);
   }
-  await api(`/api/gossips/${SELECTED_ID}/comments`, { method:"POST", body: JSON.stringify({body}) });
-  document.getElementById("cBody").value = "";
-  document.getElementById("cMsg").textContent = "Comentário enviado ✅";
-  await openGossip(SELECTED_ID, true);
-  await refresh();
 }
 
-// ===== Auth =====
+async function refreshNotifications(){
+  const c = await api("/api/notifications/unread_count");
+  const badge = document.getElementById("bellBadge");
+  if(c.count > 0){
+    badge.style.display = "inline-block";
+    badge.textContent = String(c.count);
+  }else{
+    badge.style.display = "none";
+  }
+}
+
+async function toggleNotifPanel(){
+  const panel = document.getElementById("notifPanel");
+  const isOpen = panel.style.display === "block";
+  panel.style.display = isOpen ? "none" : "block";
+  if(!isOpen){
+    const notifs = await api("/api/notifications?limit=25");
+    document.getElementById("notifs").innerHTML = notifs.map(n => `
+      <div class="notifItem ${n.read_at ? "" : "unread"}">
+        <div class="meta">
+          <span class="pill">${escapeHtml(n.type)}</span>
+          <span class="pill">${fmtTs(n.created_at)}</span>
+        </div>
+        <div style="margin-top:6px;">${escapeHtml(n.message)}</div>
+        <div class="inline" style="margin-top:10px;">
+          ${n.entity==="gossip" && n.entity_id ? `<button onclick="openFromNotif(${n.id}, ${n.entity_id})">Abrir</button>` : ""}
+          ${n.read_at ? "" : `<button class="ghost" onclick="markNotifRead(${n.id})">Marcar lida</button>`}
+        </div>
+      </div>
+    `).join("") || `<div class="muted">Sem notificações.</div>`;
+  }
+}
+
+async function openFromNotif(nid, gid){
+  await markNotifRead(nid);
+  await openGossip(gid);
+  await refreshNotifications();
+}
+
+async function markNotifRead(nid){
+  await api("/api/notifications/" + nid + "/read", { method:"POST" });
+  await refreshNotifications();
+  if(document.getElementById("notifPanel").style.display === "block"){
+    await toggleNotifPanel();
+    await toggleNotifPanel();
+  }
+}
+
+async function fullRefresh(){
+  await refreshHeaderAndStats();
+  await refreshNotifications();
+  await refreshList();
+}
+
+/* ===== Auth wiring ===== */
 document.getElementById("goRegisterBtn").onclick = () => setMode("register");
 document.getElementById("backToLoginBtn").onclick = () => setMode("login");
 
@@ -511,10 +714,9 @@ document.getElementById("loginBtn").onclick = async () => {
 
     const out = await api("/api/login", { method:"POST", body: JSON.stringify({username, password}) });
     TOKEN = out.token;
-    USERNAME = out.display_name ? `${out.display_name} (@${out.username})` : out.username;
 
     setAuthUI(true);
-    await refresh();
+    await fullRefresh();
     clearViewer();
   }catch(e){
     document.getElementById("authMsg").textContent = e.message;
@@ -523,20 +725,27 @@ document.getElementById("loginBtn").onclick = async () => {
 
 document.getElementById("logoutBtn").onclick = async () => {
   try{ await api("/api/logout", { method:"POST" }); }catch(e){}
-  TOKEN = null; USERNAME = null;
+  TOKEN = null; MY = null;
   setAuthUI(false);
   setMode("login");
   clearViewer();
 };
 
 document.getElementById("createBtn").onclick = create;
-document.getElementById("refreshBtn").onclick = refresh;
-document.getElementById("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refresh(); });
-document.getElementById("statusFilter").addEventListener("change", refresh);
+document.getElementById("refreshBtn").onclick = fullRefresh;
+document.getElementById("applyBtn").onclick = refreshList;
+document.getElementById("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refreshList(); });
+document.getElementById("statusFilter").addEventListener("change", refreshList);
+document.getElementById("sort").addEventListener("change", refreshList);
+
+document.getElementById("tabFeed").onclick = ()=>setTab("feed");
+document.getElementById("tabBacklog").onclick = ()=>setTab("backlog");
 
 document.getElementById("deleteBtn").onclick = delSelected;
 document.getElementById("moveBtn").onclick = moveSelected;
 document.getElementById("cSend").onclick = sendComment;
+
+document.getElementById("bellBtn").onclick = toggleNotifPanel;
 
 setMode("login");
 clearViewer();
