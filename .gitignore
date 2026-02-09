@@ -2,6 +2,15 @@
 __pycache__/
 *.py[codz]
 *$py.class
+*.pyc
+*.log
+.venv/
+venv/
+*.db
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
 # C extensions
 *.so
