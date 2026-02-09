@@ -34,18 +34,11 @@
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .muted { opacity: .75; font-size: 12px; }
 
-    /* Badges compactas */
     .pill {
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding: 2px 8px;
-      border-radius: 999px;
-      border: 1px solid #2a3a52;
-      font-size: 11px;
-      line-height: 1.4;
-      opacity:.92;
-      white-space: nowrap;
+      display:inline-flex; align-items:center; gap:6px;
+      padding: 2px 8px; border-radius: 999px;
+      border: 1px solid #2a3a52; font-size: 11px; line-height: 1.4;
+      opacity:.92; white-space: nowrap;
     }
     .pill.small { padding: 2px 7px; font-size: 11px; opacity: .9; }
     .pill.ghost { background: transparent; }
@@ -60,66 +53,31 @@
 
     .list { display:flex; flex-direction: column; gap: 10px; }
 
-    /* Feed cards: no desktop, vira grade */
-    .feedGrid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 10px;
-    }
-    @media (min-width: 1200px){
-      .feedGrid { grid-template-columns: 1fr 1fr; }
-    }
+    .feedGrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    @media (min-width: 1200px){ .feedGrid { grid-template-columns: 1fr 1fr; } }
 
-    /* Card do feed mais “produtinho” */
     .feedItem{
-      border: 1px solid #203044;
-      background:#0b111a;
-      border-radius: 14px;
-      padding: 12px;
-      display:flex;
-      flex-direction: column;
-      gap: 10px;
+      border: 1px solid #203044; background:#0b111a;
+      border-radius: 14px; padding: 12px;
+      display:flex; flex-direction: column; gap: 10px;
     }
+    .feedItem.active{ border-color:#3a5677; }
     .feedItem:hover{ border-color:#2d425c; }
-    .feedTop{
-      display:flex;
-      align-items:flex-start;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .feedTitle{
-      margin: 0;
-      font-size: 16px;
-      line-height: 1.25;
-      font-weight: 800;
-    }
+    .feedTop{ display:flex; align-items:flex-start; justify-content: space-between; gap: 12px; }
+    .feedTitle{ margin: 0; font-size: 16px; line-height: 1.25; font-weight: 800; }
     .openBtn{
-      width:auto;
-      padding: 8px 10px;
-      border-radius: 10px;
-      background:#153a2a;
-      border-color:#1f5b40;
-      white-space: nowrap;
+      width:auto; padding: 8px 10px; border-radius: 10px;
+      background:#153a2a; border-color:#1f5b40; white-space: nowrap;
     }
-
     .metaRow{ display:flex; gap: 8px; flex-wrap:wrap; }
-
-    /* Preview 2 linhas */
     .preview{
-      opacity:.9;
-      font-size: 13px;
-      line-height: 1.35;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
+      opacity:.9; font-size: 13px; line-height: 1.35;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
       overflow: hidden;
     }
-
-    /* Linha compacta de reações */
     .reactLine{ display:flex; gap: 8px; flex-wrap:wrap; }
     .reactLine .pill{ opacity:.9; }
 
-    /* Viewer */
     .detailsBox { white-space:pre-wrap; line-height:1.4; }
     .commentBox { display:flex; gap:10px; align-items:flex-start; }
     .commentBox textarea { min-height: 60px; }
@@ -146,6 +104,38 @@
     .tabbtn { width:auto; padding: 10px 12px; }
     .tabbtn.active { background:#153a2a; border-color:#1f5b40; }
 
+    /* Modals simples */
+    .modalBackdrop{
+      display:none;
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      z-index: 50;
+      padding: 16px;
+    }
+    .modal{
+      max-width: 720px;
+      margin: 40px auto;
+      background: #0f1620;
+      border: 1px solid #1f2a37;
+      border-radius: 14px;
+      padding: 14px;
+    }
+    .modalHeader{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
+    .modalHeader h3{ margin:0; }
+    .modalClose{ width:auto; background: transparent; border-color:#2a3a52; }
+    .linkBtn{
+      width:auto;
+      background: transparent;
+      border-color:#2a3a52;
+      padding: 6px 10px;
+      font-weight: 700;
+    }
+    .authorLink{
+      cursor:pointer;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
     @media (max-width: 1300px){
       main.wrap { grid-template-columns: minmax(460px, 560px) 1fr; }
       #viewerCard { grid-column: 1 / -1; }
@@ -155,6 +145,17 @@
       .kpi { min-width: 120px; }
       #viewerCard { grid-column: auto; }
       .feedGrid { grid-template-columns: 1fr; }
+    }
+
+    /* Viewer sticky no desktop */
+    @media (min-width: 1301px){
+      #viewerCard{
+        position: sticky;
+        top: 16px;
+        align-self: start;
+        max-height: calc(100vh - 32px);
+        overflow: auto;
+      }
     }
   </style>
 </head>
@@ -268,7 +269,6 @@
       <div>
         <label class="muted">Status</label>
         <select id="status">
-          <option value="LEAD">LEAD</option>
           <option value="APURACAO">APURAÇÃO</option>
           <option value="CONFIRMADO">CONFIRMADO</option>
           <option value="ARQUIVADO">ARQUIVADO</option>
@@ -360,6 +360,43 @@
   </section>
 </main>
 
+<!-- Modal: Perfil -->
+<div class="modalBackdrop" id="profileModal">
+  <div class="modal">
+    <div class="modalHeader">
+      <h3 id="pmTitle">Perfil</h3>
+      <button class="modalClose" onclick="closeProfile()">Fechar</button>
+    </div>
+    <div style="height:10px;"></div>
+    <div id="pmBody" class="muted"></div>
+    <div style="height:12px;"></div>
+    <div class="list" id="pmGossips"></div>
+  </div>
+</div>
+
+<!-- Modal: Mover status -->
+<div class="modalBackdrop" id="statusModal">
+  <div class="modal">
+    <div class="modalHeader">
+      <h3>Mover status</h3>
+      <button class="modalClose" onclick="closeStatusModal()">Fechar</button>
+    </div>
+    <div style="height:10px;"></div>
+    <div class="muted">Escolha para qual status deseja mover:</div>
+    <div style="height:10px;"></div>
+    <select id="statusSelect">
+      <option value="APURACAO">APURAÇÃO</option>
+      <option value="CONFIRMADO">CONFIRMADO</option>
+      <option value="ARQUIVADO">ARQUIVADO</option>
+    </select>
+    <div style="height:12px;"></div>
+    <div class="row">
+      <button class="good" onclick="confirmMoveStatus()">Confirmar</button>
+      <button class="ghost" onclick="closeStatusModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 let TOKEN = null;
 let MY = null; // /api/me
@@ -396,10 +433,7 @@ async function api(path, opts={}){
 
 function fmtTs(ts){ return new Date(ts * 1000).toLocaleString(); }
 function escapeHtml(str){ return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-function toPreview(text){
-  const s = (text || "").replaceAll("\r","").trim();
-  return s;
-}
+function toPreview(text){ return (text || "").replaceAll("\r","").trim(); }
 
 function setAuthUI(logged){
   document.getElementById("authCard").style.display = logged ? "none" : "block";
@@ -428,7 +462,6 @@ function renderKpis(d){
   k.innerHTML = "";
   const mk = (v, l) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
   k.insertAdjacentHTML("beforeend", mk(d.total, "Tickets totais"));
-  k.insertAdjacentHTML("beforeend", mk(d.by_status.LEAD, "LEAD"));
   k.insertAdjacentHTML("beforeend", mk(d.by_status.APURACAO, "APURAÇÃO"));
   k.insertAdjacentHTML("beforeend", mk(d.by_status.CONFIRMADO, "CONFIRMADO"));
   k.insertAdjacentHTML("beforeend", mk(d.by_status.ARQUIVADO, "ARQUIVADO"));
@@ -453,19 +486,30 @@ function reactLine(g){
   `;
 }
 
+function usernameFromLabel(label){
+  // label pode ser "Nome (@username)" ou "username"
+  const m = String(label).match(/@([a-zA-Z0-9_]{3,20})\)?$/);
+  if(m) return m[1].toLowerCase();
+  return String(label).trim().toLowerCase();
+}
+
 function itemCard(g){
-  const active = (SELECTED_ID === g.id) ? "style='border-color:#3a5677;'" : "";
+  const active = (SELECTED_ID === g.id);
   const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill small">${escapeHtml(t)}</span>`).join(" ");
   const preview = escapeHtml(toPreview(g.details)).slice(0, 500);
 
+  const uname = usernameFromLabel(g.created_by);
+  const authorHtml = `<span class="authorLink" onclick="openProfile('${uname}')">${escapeHtml(g.created_by)}</span>`;
+
   return `
-  <div class="feedItem" ${active}>
+  <div class="feedItem ${active ? "active" : ""}">
     <div class="feedTop">
       <div>
         <div class="metaRow" style="margin-bottom:8px;">
           <span class="pill small">${g.status}</span>
           <span class="pill small">Cred ${g.credibility}</span>
-          <span class="pill small">Por: ${escapeHtml(g.created_by)}</span>
+          <span class="pill small">Por: ${authorHtml}</span>
+          ${g.created_by_title ? `<span class="pill small">🏷️ ${escapeHtml(g.created_by_title)}</span>` : ""}
           <span class="pill small">💬 ${g.comment_count}</span>
           <span class="pill small">⭐ ${score(g)}</span>
         </div>
@@ -549,11 +593,15 @@ async function openGossip(id){
   document.getElementById("vTitle").textContent = SELECTED_GOSSIP.title;
   document.getElementById("vDetails").textContent = SELECTED_GOSSIP.details;
 
+  const uname = usernameFromLabel(SELECTED_GOSSIP.created_by);
+  const authorHtml = `<span class="authorLink" onclick="openProfile('${uname}')">${escapeHtml(SELECTED_GOSSIP.created_by)}</span>`;
+
   document.getElementById("vMeta").innerHTML = `
     <span class="pill small">Status: ${SELECTED_GOSSIP.status}</span>
     <span class="pill small">Cred: ${SELECTED_GOSSIP.credibility}</span>
     <span class="pill small">Fonte: ${escapeHtml(SELECTED_GOSSIP.source)}</span>
-    <span class="pill small">Por: ${escapeHtml(SELECTED_GOSSIP.created_by)}</span>
+    <span class="pill small">Por: ${authorHtml}</span>
+    ${SELECTED_GOSSIP.created_by_title ? `<span class="pill small">🏷️ ${escapeHtml(SELECTED_GOSSIP.created_by_title)}</span>` : ""}
     <span class="pill small">Criado: ${fmtTs(SELECTED_GOSSIP.created_at)}</span>
     <span class="pill small">Atualizado: ${fmtTs(SELECTED_GOSSIP.updated_at)}</span>
   `;
@@ -563,8 +611,6 @@ async function openGossip(id){
 
   renderReactions();
 
-  document.getElementById("moveBtn").disabled = false;
-  document.getElementById("deleteBtn").disabled = false;
   document.getElementById("permHint").textContent =
     "Obs: só o autor consegue mover/excluir (o servidor bloqueia).";
 
@@ -681,22 +727,73 @@ async function delSelected(){
   await refreshList();
 }
 
-async function moveSelected(){
+/* ======= Mover status com select ======= */
+function openStatusModal(){
   if(!SELECTED_GOSSIP) return;
-  const order = ["LEAD","APURACAO","CONFIRMADO","ARQUIVADO"];
-  const i = order.indexOf(SELECTED_GOSSIP.status);
-  const next = order[(i+1)%order.length];
-
+  document.getElementById("statusSelect").value = SELECTED_GOSSIP.status || "APURACAO";
+  document.getElementById("statusModal").style.display = "block";
+}
+function closeStatusModal(){
+  document.getElementById("statusModal").style.display = "none";
+}
+async function confirmMoveStatus(){
+  if(!SELECTED_GOSSIP) return;
+  const next = document.getElementById("statusSelect").value;
   const payload = { ...SELECTED_GOSSIP, status: next, tags: (SELECTED_GOSSIP.tags||[]) };
   try{
     const updated = await api("/api/gossips/" + SELECTED_ID, { method:"PATCH", body: JSON.stringify(payload) });
     SELECTED_GOSSIP = updated;
+    closeStatusModal();
     await openGossip(SELECTED_ID);
   }catch(e){
     alert(e.message);
   }
 }
 
+/* ======= Perfil modal ======= */
+function closeProfile(){
+  document.getElementById("profileModal").style.display = "none";
+}
+async function openProfile(username){
+  try{
+    const prof = await api("/api/users/" + encodeURIComponent(username));
+    document.getElementById("pmTitle").textContent = `Perfil — ${prof.label}`;
+    const badges = (prof.badges||[]).map(b=>`<span class="pill small">${escapeHtml(b)}</span>`).join(" ");
+    document.getElementById("pmBody").innerHTML = `
+      <div class="metaRow">
+        <span class="pill small">🏷️ ${escapeHtml(prof.title)}</span>
+        <span class="pill small">📌 Fofocas: ${prof.total_gossips}</span>
+      </div>
+      <div style="height:10px;"></div>
+      ${badges ? `<div class="metaRow">${badges}</div>` : `<div class="muted">Sem conquistas ainda…</div>`}
+      <div style="height:12px;"></div>
+      <div class="muted">Fofocas deste usuário:</div>
+    `;
+
+    const gs = await api("/api/users/" + encodeURIComponent(username) + "/gossips?limit=50");
+    document.getElementById("pmGossips").innerHTML = gs.map(g => `
+      <div class="feedItem">
+        <div class="metaRow">
+          <span class="pill small">${g.status}</span>
+          <span class="pill small">⭐ ${score(g)}</span>
+          <span class="pill small">💬 ${g.comment_count}</span>
+          <span class="pill small">${fmtTs(g.created_at)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
+          <div style="font-weight:800;">${escapeHtml(g.title)}</div>
+          <button class="openBtn" onclick="openGossip(${g.id}); closeProfile();">Abrir</button>
+        </div>
+        <div class="preview">${escapeHtml(toPreview(g.details))}</div>
+      </div>
+    `).join("") || `<div class="muted">Nenhuma fofoca ainda.</div>`;
+
+    document.getElementById("profileModal").style.display = "block";
+  }catch(e){
+    alert(e.message);
+  }
+}
+
+/* ===== Notificações ===== */
 async function refreshNotifications(){
   const c = await api("/api/notifications/unread_count");
   const badge = document.getElementById("bellBadge");
@@ -751,7 +848,7 @@ async function fullRefresh(){
   await refreshList();
 }
 
-/* ===== Auth wiring ===== */
+/* ===== Auth ===== */
 document.getElementById("goRegisterBtn").onclick = () => setMode("register");
 document.getElementById("backToLoginBtn").onclick = () => setMode("login");
 
@@ -809,7 +906,7 @@ document.getElementById("tabFeed").onclick = ()=>setTab("feed");
 document.getElementById("tabBacklog").onclick = ()=>setTab("backlog");
 
 document.getElementById("deleteBtn").onclick = delSelected;
-document.getElementById("moveBtn").onclick = moveSelected;
+document.getElementById("moveBtn").onclick = openStatusModal;
 document.getElementById("cSend").onclick = sendComment;
 
 document.getElementById("bellBtn").onclick = toggleNotifPanel;
