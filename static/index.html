@@ -260,10 +260,10 @@
 
 <script>
   // ======= CONFIG =======
-  const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.supabase.co";
+  const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.sb.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZndWl3dWl3Z2l1aHRvaWZnamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MzkwMjEsImV4cCI6MjA4NjIxNTAyMX0.EIGcLHCx0cYCAdobpAklR2MuKxpI7VQvcMIpYww3GMg";
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb = window.sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ======= STATE =======
   let session = null;
@@ -380,7 +380,7 @@
 
       const email = usernameToEmail(username);
 
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if(error) throw error;
 
       session = data.session;
@@ -393,7 +393,7 @@
   };
 
   $("logoutBtn").onclick = async () => {
-    await supabase.auth.signOut();
+    await sb.auth.signOut();
     session = null;
     me = null;
     selected = null;
@@ -413,7 +413,7 @@
 
       const email = usernameToEmail(username);
 
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await sb.auth.signUp({
         email,
         password,
         options: {
@@ -439,7 +439,7 @@
 
   // ======= LOAD PROFILE =======
   async function loadMe(){
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
     if(!user) throw new Error("Sessão inválida.");
 
     // profiles é criada por trigger no signup; mas pode demorar um pouco
@@ -454,14 +454,14 @@
       // fallback: tenta criar (caso trigger não tenha rodado)
       const metaU = user.user_metadata?.username || user.email?.split("@")[0] || "usuario";
       const metaN = user.user_metadata?.display_name || "Usuário";
-      const ins = await supabase.from("profiles").insert({
+      const ins = await sb.from("profiles").insert({
         id: user.id,
         username: metaU.toLowerCase(),
         display_name: metaN
       });
       if(ins.error) throw ins.error;
 
-      const again = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      const again = await sb.from("profiles").select("*").eq("id", user.id).single();
       if(again.error) throw again.error;
       me = again.data;
     } else {
@@ -472,10 +472,10 @@
   }
 
   async function countMine(){
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
     const uid = user?.id;
     if(!uid) return 0;
-    const { count, error } = await supabase.from("gossips").select("id", { count:"exact", head:true }).eq("created_by", uid);
+    const { count, error } = await sb.from("gossips").select("id", { count:"exact", head:true }).eq("created_by", uid);
     if(error) return 0;
     return count || 0;
   }
@@ -484,7 +484,7 @@
   async function createGossip(){
     try{
       setMsg("msg","");
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       const uid = user?.id;
       if(!uid) throw new Error("Você não está logado.");
 
@@ -501,7 +501,7 @@
       if(title.length < 4) throw new Error("Título muito curto.");
       if(details.length < 6) throw new Error("Detalhes muito curtos.");
 
-      const { error } = await supabase.from("gossips").insert({
+      const { error } = await sb.from("gossips").insert({
         title, source, details, status, credibility, tags,
         created_by: uid
       });
@@ -546,7 +546,7 @@
       .limit(60);
 
     if(mode === "mine"){
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       q = q.eq("created_by", user.id);
     }
 
@@ -654,7 +654,7 @@
       $("moveStatusSelect").value = selected.status || "APURACAO";
 
       // permissões: excluir só se for do dono
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       const isMine = user?.id && selected.created_by === user.id;
       $("deleteBtn").style.display = isMine ? "inline-block" : "none";
 
@@ -719,10 +719,10 @@
       const body = ($("commentBody").value || "").trim();
       if(body.length < 2) throw new Error("Comentário muito curto.");
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       if(!user?.id) throw new Error("Você não está logado.");
 
-      const ins = await supabase.from("comments").insert({
+      const ins = await sb.from("comments").insert({
         gossip_id: selected.id,
         user_id: user.id,
         body
@@ -748,7 +748,7 @@
     const agg = selected.reactions || {};
 
     // saber quais eu já reagi (para marcar botão)
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
     const uid = user?.id;
 
     let mine = [];
@@ -775,7 +775,7 @@
 
   async function toggleReaction(reaction){
     if(!selected) return;
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await sb.auth.getUser();
     const uid = user?.id;
     if(!uid) return;
 
@@ -791,10 +791,10 @@
     if(ex.error && ex.error.code !== "PGRST116"){ /* ignore not found */ }
 
     if(ex.data?.id){
-      const del = await supabase.from("reactions").delete().eq("id", ex.data.id);
+      const del = await sb.from("reactions").delete().eq("id", ex.data.id);
       if(del.error) throw del.error;
     } else {
-      const ins = await supabase.from("reactions").insert({
+      const ins = await sb.from("reactions").insert({
         gossip_id: selected.id,
         user_id: uid,
         reaction
@@ -811,7 +811,7 @@
       if(!selected) throw new Error("Nenhuma fofoca selecionada.");
       const next = $("moveStatusSelect").value;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       const isMine = user?.id && selected.created_by === user.id;
       if(!isMine) throw new Error("Você só pode mover status das suas fofocas.");
 
@@ -833,13 +833,13 @@
     try{
       if(!selected) return;
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const { data: { user } } = await sb.auth.getUser();
       const isMine = user?.id && selected.created_by === user.id;
       if(!isMine) throw new Error("Você só pode excluir suas fofocas.");
 
       if(!confirm("Tem certeza que deseja excluir este ticket?")) return;
 
-      const del = await supabase.from("gossips").delete().eq("id", selected.id);
+      const del = await sb.from("gossips").delete().eq("id", selected.id);
       if(del.error) throw del.error;
 
       selected = null;
@@ -941,7 +941,7 @@
 
   // ======= BOOT =======
   (async function boot(){
-    const { data } = await supabase.auth.getSession();
+    const { data } = await sb.auth.getSession();
     session = data.session;
 
     if(session){
@@ -951,7 +951,7 @@
         await refreshAll(false);
       }catch(err){
         // sessão inválida, força logout
-        await supabase.auth.signOut();
+        await sb.auth.signOut();
         session = null;
         me = null;
         setAuthUI(false);
@@ -961,7 +961,7 @@
     }
 
     // atualiza UI quando sessão muda (login/logout em outra aba etc)
-    supabase.auth.onAuthStateChange(async (_event, _session) => {
+    sb.auth.onAuthStateChange(async (_event, _session) => {
       session = _session;
       if(session){
         await loadMe();
