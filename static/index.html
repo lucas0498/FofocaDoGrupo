@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Fofoca Do Grupo — Enterprise Gossip Management</title>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    body { margin: 0; background: #0b0f14; color: #e6edf3; }
+    header { padding: 18px 22px; border-bottom: 1px solid #1f2a37; display:flex; gap:12px; align-items:center; }
+    .brand { font-weight: 800; letter-spacing: 0.5px; }
+    .tagline { opacity: .75; font-size: 12px; }
+    main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
+    .card { background: #0f1620; border: 1px solid #1f2a37; border-radius: 14px; padding: 14px; }
+    input, textarea, select, button {
+      width: 100%; box-sizing: border-box; padding: 10px 10px; border-radius: 10px;
+      border: 1px solid #243244; background: #0b111a; color: #e6edf3; outline: none;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    button { cursor: pointer; background: #1b3a57; border-color: #2b4a66; font-weight: 700; }
+    button:hover { filter: brightness(1.08); }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .muted { opacity: .75; font-size: 12px; }
+    .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; border: 1px solid #2a3a52; font-size: 12px; opacity:.9; }
+    .list { display:flex; flex-direction: column; gap: 10px; }
+    .item { border: 1px solid #203044; background:#0b111a; border-radius: 14px; padding: 12px; }
+    .item h3 { margin: 0 0 6px 0; font-size: 16px; }
+    .item .meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 8px; }
+    .topbar { display:flex; gap:10px; align-items:center; justify-content: space-between; }
+    .kpis { display:flex; gap:10px; flex-wrap:wrap; }
+    .kpi { background:#0b111a; border:1px solid #203044; border-radius: 14px; padding: 10px 12px; min-width: 120px; }
+    .kpi .v { font-size: 18px; font-weight: 800; }
+    .kpi .l { font-size: 12px; opacity:.75; }
+    .danger { background:#4a1d1d; border-color:#6a2b2b; }
+    .inline { display:flex; gap:8px; }
+    .inline button { width:auto; padding: 10px 12px; }
+    @media (max-width: 980px){ main { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="brand">Fofoca do Grupo</div>
+    <div class="tagline">Enterprise Gossip Management • Observability • Compliance • Governança de Tias</div>
+  </div>
+  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+    <span id="who" class="muted"></span>
+    <button id="logoutBtn" style="width:auto; display:none;">Sair</button>
+  </div>
+</header>
+
+<main>
+  <section class="card" id="authCard">
+    <h2 style="margin-top:0;">Acesso</h2>
+    <div class="muted">Conta padrão: <b>admin</b> / <b>admin</b></div>
+    <div style="height:10px"></div>
+    <input id="u" placeholder="Usuário" value="admin"/>
+    <div style="height:10px"></div>
+    <input id="p" placeholder="Senha" type="password" value="admin"/>
+    <div style="height:10px"></div>
+    <button id="loginBtn">Entrar</button>
+    <div id="authMsg" class="muted" style="margin-top:10px;"></div>
+  </section>
+
+  <section class="card" id="appCard" style="display:none;">
+    <div class="topbar">
+      <h2 style="margin:0;">Dashboard</h2>
+      <div class="inline">
+        <input id="q" placeholder="Pesquisar fofoca..." />
+        <select id="statusFilter" style="width:180px;">
+          <option value="">Todas</option>
+          <option value="LEAD">LEAD</option>
+          <option value="APURACAO">APURAÇÃO</option>
+          <option value="CONFIRMADO">CONFIRMADO</option>
+          <option value="ARQUIVADO">ARQUIVADO</option>
+        </select>
+        <button id="refreshBtn">Atualizar</button>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+    <div class="kpis" id="kpis"></div>
+
+    <div style="height:14px;"></div>
+    <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
+
+    <div class="row">
+      <div>
+        <label class="muted">Título</label>
+        <input id="title" placeholder="Ex: Fulano foi visto comprando..."/>
+      </div>
+      <div>
+        <label class="muted">Fonte</label>
+        <input id="source" placeholder="Ex: 'porteiro', 'grupo da família'"/>
+      </div>
+    </div>
+    <div style="height:10px;"></div>
+    <label class="muted">Detalhes</label>
+    <textarea id="details" placeholder="Descreva com seriedade corporativa..."></textarea>
+
+    <div style="height:10px;"></div>
+    <div class="row">
+      <div>
+        <label class="muted">Status</label>
+        <select id="status">
+          <option value="LEAD">LEAD</option>
+          <option value="APURACAO">APURAÇÃO</option>
+          <option value="CONFIRMADO">CONFIRMADO</option>
+          <option value="ARQUIVADO">ARQUIVADO</option>
+        </select>
+      </div>
+      <div>
+        <label class="muted">Confiabilidade (0–100)</label>
+        <input id="cred" type="number" min="0" max="100" value="50"/>
+      </div>
+    </div>
+
+    <div style="height:10px;"></div>
+    <label class="muted">Tags (separadas por vírgula)</label>
+    <input id="tags" placeholder="fonte confiável, ouvi falar, primo do amigo"/>
+
+    <div style="height:12px;"></div>
+    <button id="createBtn">Registrar ticket</button>
+    <div id="msg" class="muted" style="margin-top:10px;"></div>
+
+    <div style="height:16px;"></div>
+    <h3 style="margin:0 0 10px 0;">Backlog</h3>
+    <div class="list" id="list"></div>
+
+    <div style="height:16px;"></div>
+    <h3 style="margin:0 0 10px 0;">Audit Log</h3>
+    <div class="list" id="audit"></div>
+  </section>
+</main>
+
+<script>
+let TOKEN = null;
+let USERNAME = null;
+
+function authHeader(){
+  return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {};
+}
+
+async function api(path, opts={}){
+  const res = await fetch(path, {
+    ...opts,
+    headers: {
+      "Content-Type": "application/json",
+      ...(opts.headers || {}),
+      ...authHeader()
+    }
+  });
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+  if(!res.ok){
+    const msg = (data && data.detail) ? data.detail : ("Erro " + res.status);
+    throw new Error(msg);
+  }
+  return data;
+}
+
+function setAuthUI(logged){
+  document.getElementById("authCard").style.display = logged ? "none" : "block";
+  document.getElementById("appCard").style.display = logged ? "block" : "none";
+  document.getElementById("logoutBtn").style.display = logged ? "inline-block" : "none";
+  document.getElementById("who").textContent = logged ? ("Logado como: " + USERNAME) : "";
+}
+
+function fmtTs(ts){
+  const d = new Date(ts * 1000);
+  return d.toLocaleString();
+}
+
+function renderKpis(d){
+  const k = document.getElementById("kpis");
+  k.innerHTML = "";
+  const mk = (v, l) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
+  k.insertAdjacentHTML("beforeend", mk(d.total, "Tickets totais"));
+  k.insertAdjacentHTML("beforeend", mk(d.by_status.LEAD, "LEAD"));
+  k.insertAdjacentHTML("beforeend", mk(d.by_status.APURACAO, "APURAÇÃO"));
+  k.insertAdjacentHTML("beforeend", mk(d.by_status.CONFIRMADO, "CONFIRMADO"));
+  k.insertAdjacentHTML("beforeend", mk(d.by_status.ARQUIVADO, "ARQUIVADO"));
+  k.insertAdjacentHTML("beforeend", mk(d.avg_credibility.toFixed(1), "Credibilidade média"));
+}
+
+function itemHTML(g){
+  const tags = (g.tags || []).map(t => `<span class="pill">${t}</span>`).join(" ");
+  return `
+  <div class="item">
+    <h3>${g.title}</h3>
+    <div class="meta">
+      <span class="pill">Status: ${g.status}</span>
+      <span class="pill">Cred: ${g.credibility}</span>
+      <span class="pill">Fonte: ${g.source}</span>
+      <span class="pill">Por: ${g.created_by}</span>
+      <span class="pill">Atualizado: ${fmtTs(g.updated_at)}</span>
+    </div>
+    <div style="white-space:pre-wrap; opacity:.95;">${g.details}</div>
+    <div style="margin-top:10px;">${tags}</div>
+    <div class="inline" style="margin-top:12px;">
+      <button onclick="quickMove(${g.id}, '${g.status}')">Mover status</button>
+      <button class="danger" onclick="del(${g.id})">Excluir</button>
+    </div>
+  </div>`;
+}
+
+async function refresh(){
+  const q = document.getElementById("q").value.trim();
+  const st = document.getElementById("statusFilter").value;
+  const dash = await api("/api/dashboard");
+  renderKpis(dash);
+
+  const url = new URL(location.origin + "/api/gossips");
+  if(q) url.searchParams.set("q", q);
+  if(st) url.searchParams.set("status_filter", st);
+  const gossips = await api(url.pathname + url.search);
+  const list = document.getElementById("list");
+  list.innerHTML = gossips.map(itemHTML).join("");
+
+  const audit = await api("/api/audit?limit=20");
+  const a = document.getElementById("audit");
+  a.innerHTML = audit.map(x => `
+    <div class="item">
+      <div class="meta">
+        <span class="pill">${fmtTs(x.ts)}</span>
+        <span class="pill">${x.user}</span>
+        <span class="pill">${x.action}</span>
+        <span class="pill">${x.entity}#${x.entity_id ?? "-"}</span>
+      </div>
+      <div class="muted">${x.meta}</div>
+    </div>
+  `).join("");
+}
+
+async function create(){
+  const payload = {
+    title: document.getElementById("title").value.trim(),
+    source: document.getElementById("source").value.trim() || "anônimo corporativo",
+    details: document.getElementById("details").value.trim(),
+    credibility: Number(document.getElementById("cred").value || 0),
+    status: document.getElementById("status").value,
+    tags: (document.getElementById("tags").value || "")
+      .split(",").map(s => s.trim()).filter(Boolean),
+  };
+  if(payload.title.length < 3 || payload.details.length < 3){
+    document.getElementById("msg").textContent = "Preenche título e detalhes, Compliance agradece.";
+    return;
+  }
+  await api("/api/gossips", { method:"POST", body: JSON.stringify(payload) });
+  document.getElementById("msg").textContent = "Ticket registrado com excelência operacional.";
+  document.getElementById("title").value = "";
+  document.getElementById("details").value = "";
+  document.getElementById("tags").value = "";
+  await refresh();
+}
+
+async function del(id){
+  if(!confirm("Excluir esse ticket de fofoca? Isso vai contra a governança de memória coletiva.")) return;
+  await api("/api/gossips/" + id, { method:"DELETE" });
+  await refresh();
+}
+
+async function quickMove(id, current){
+  const order = ["LEAD","APURACAO","CONFIRMADO","ARQUIVADO"];
+  const i = order.indexOf(current);
+  const next = order[(i+1) % order.length];
+
+  // Pega lista atual e encontra item
+  const all = await api("/api/gossips");
+  const g = all.find(x => x.id === id);
+  if(!g) return;
+
+  const payload = { ...g, status: next };
+  await api("/api/gossips/" + id, { method:"PATCH", body: JSON.stringify(payload) });
+  await refresh();
+}
+
+document.getElementById("loginBtn").onclick = async () => {
+  try{
+    const username = document.getElementById("u").value.trim();
+    const password = document.getElementById("p").value;
+    const out = await api("/api/login", { method:"POST", body: JSON.stringify({username, password}) });
+    TOKEN = out.token; USERNAME = out.username;
+    setAuthUI(true);
+    await refresh();
+  }catch(e){
+    document.getElementById("authMsg").textContent = e.message;
+  }
+};
+
+document.getElementById("logoutBtn").onclick = async () => {
+  try{ await api("/api/logout", { method:"POST" }); }catch(e){}
+  TOKEN = null; USERNAME = null;
+  setAuthUI(false);
+};
+
+document.getElementById("createBtn").onclick = create;
+document.getElementById("refreshBtn").onclick = refresh;
+document.getElementById("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refresh(); });
+document.getElementById("statusFilter").addEventListener("change", refresh);
+</script>
+</body>
+</html>
