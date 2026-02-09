@@ -262,8 +262,12 @@
   // ======= CONFIG =======
   const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.sb.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZndWl3dWl3Z2l1aHRvaWZnamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MzkwMjEsImV4cCI6MjA4NjIxNTAyMX0.EIGcLHCx0cYCAdobpAklR2MuKxpI7VQvcMIpYww3GMg";
+  if (!window.supabase || !window.supabase.createClient) {
+    throw new Error("Supabase JS não carregou. Verifique se o <script src='@supabase/supabase-js@2'> está antes do seu script.");
+  }
+  
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const sb = window.sb.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ======= STATE =======
   let session = null;
