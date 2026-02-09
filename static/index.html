@@ -10,8 +10,10 @@
     header { padding: 18px 22px; border-bottom: 1px solid #1f2a37; display:flex; gap:12px; align-items:center; }
     .brand { font-weight: 800; letter-spacing: 0.5px; }
     .tagline { opacity: .75; font-size: 12px; }
-    main { display: grid; grid-template-columns: 360px 1fr; gap: 16px; padding: 16px; }
+
+    main { display: grid; grid-template-columns: 420px 1fr; gap: 16px; padding: 16px; align-items:start; }
     .card { background: #0f1620; border: 1px solid #1f2a37; border-radius: 14px; padding: 14px; }
+    .cardTitle { display:flex; align-items:center; justify-content:space-between; gap:10px; }
     input, textarea, select, button {
       width: 100%; box-sizing: border-box; padding: 10px 10px; border-radius: 10px;
       border: 1px solid #243244; background: #0b111a; color: #e6edf3; outline: none;
@@ -23,21 +25,31 @@
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .muted { opacity: .75; font-size: 12px; }
     .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; border: 1px solid #2a3a52; font-size: 12px; opacity:.9; }
-    .list { display:flex; flex-direction: column; gap: 10px; }
-    .item { border: 1px solid #203044; background:#0b111a; border-radius: 14px; padding: 12px; }
-    .item h3 { margin: 0 0 6px 0; font-size: 16px; }
-    .item .meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 8px; }
-    .topbar { display:flex; gap:10px; align-items:center; justify-content: space-between; }
+    .danger { background:#4a1d1d; border-color:#6a2b2b; }
+    .good { background:#153a2a; border-color:#1f5b40; }
+    .ghost { background: transparent; border-color: #2a3a52; }
+
     .kpis { display:flex; gap:10px; flex-wrap:wrap; }
     .kpi { background:#0b111a; border:1px solid #203044; border-radius: 14px; padding: 10px 12px; min-width: 120px; }
     .kpi .v { font-size: 18px; font-weight: 800; }
     .kpi .l { font-size: 12px; opacity:.75; }
-    .danger { background:#4a1d1d; border-color:#6a2b2b; }
-    .inline { display:flex; gap:8px; }
-    .inline button { width:auto; padding: 10px 12px; }
-    .good { background:#153a2a; border-color:#1f5b40; }
-    .ghost { background: transparent; border-color: #2a3a52; }
-    .field { margin-top: 10px; }
+
+    .list { display:flex; flex-direction: column; gap: 10px; }
+    .item { border: 1px solid #203044; background:#0b111a; border-radius: 14px; padding: 12px; }
+    .item:hover { border-color:#2d425c; }
+    .item h3 { margin: 0 0 6px 0; font-size: 16px; }
+    .meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 8px; }
+    .clickable { cursor:pointer; }
+
+    .split { display:grid; grid-template-columns: 1fr; gap:16px; }
+    .detailsBox { white-space:pre-wrap; line-height:1.4; }
+    .commentBox { display:flex; gap:10px; align-items:flex-start; }
+    .commentBox textarea { min-height: 60px; }
+    .comment { border:1px solid #203044; border-radius: 14px; background:#0b111a; padding: 10px; }
+    .comment .who { font-weight:700; }
+    .comment .when { opacity:.7; font-size:12px; margin-left:6px; }
+    .comment .body { white-space:pre-wrap; margin-top:6px; }
+
     @media (max-width: 980px){ main { grid-template-columns: 1fr; } }
   </style>
 </head>
@@ -54,30 +66,31 @@
 </header>
 
 <main>
+  <!-- AUTH -->
   <section class="card" id="authCard">
     <h2 id="authTitle" style="margin-top:0;">Acesso</h2>
     <div id="authHint" class="muted">
       Entre com sua conta. Se ainda não tiver, clique em <b>Criar conta</b>.
     </div>
 
-    <div class="field" id="nameField" style="display:none;">
+    <div style="margin-top:10px; display:none;" id="nameField">
       <input id="n" placeholder="Nome (ex: Dona Cida do 302)"/>
     </div>
 
-    <div class="field">
-      <input id="u" placeholder="Usuário (ex: fofoqueiro123)" value=""/>
+    <div style="margin-top:10px;">
+      <input id="u" placeholder="Usuário (ex: lucas_fofoca)" />
     </div>
 
-    <div class="field">
-      <input id="p" placeholder="Senha" type="password" value=""/>
+    <div style="margin-top:10px;">
+      <input id="p" placeholder="Senha" type="password" />
     </div>
 
-    <div class="field row" id="authButtons">
+    <div class="row" id="authButtons" style="margin-top:10px;">
       <button id="loginBtn">Entrar</button>
       <button id="goRegisterBtn" class="good">Criar conta</button>
     </div>
 
-    <div class="field" id="registerButtons" style="display:none;">
+    <div id="registerButtons" style="display:none; margin-top:10px;">
       <button id="registerBtn" class="good">Confirmar cadastro</button>
       <div style="height:10px;"></div>
       <button id="backToLoginBtn" class="ghost">Voltar para o login</button>
@@ -86,104 +99,149 @@
     <div id="authMsg" class="muted" style="margin-top:10px;"></div>
   </section>
 
-  <section class="card" id="appCard" style="display:none;">
-    <div class="topbar">
-      <h2 style="margin:0;">Dashboard</h2>
-      <div class="inline">
-        <input id="q" placeholder="Pesquisar fofoca..." />
-        <select id="statusFilter" style="width:180px;">
-          <option value="">Todas</option>
-          <option value="LEAD">LEAD</option>
-          <option value="APURACAO">APURAÇÃO</option>
-          <option value="CONFIRMADO">CONFIRMADO</option>
-          <option value="ARQUIVADO">ARQUIVADO</option>
-        </select>
-        <button id="refreshBtn">Atualizar</button>
+  <!-- APP -->
+  <section class="split" id="appCard" style="display:none;">
+    <!-- LEFT: Sidebar -->
+    <section class="card">
+      <div class="cardTitle">
+        <h2 style="margin:0;">Dashboard</h2>
+        <button id="refreshBtn" style="width:auto;">Atualizar</button>
       </div>
-    </div>
 
-    <div style="height:10px;"></div>
-    <div class="kpis" id="kpis"></div>
+      <div style="height:10px;"></div>
+      <div class="kpis" id="kpis"></div>
 
-    <div style="height:10px;"></div>
-    <div id="profile" class="muted"></div>
+      <div style="height:10px;"></div>
+      <div id="profile" class="muted"></div>
 
-    <div style="height:14px;"></div>
-    <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
+      <div style="height:16px;"></div>
+      <h3 style="margin:0 0 10px 0;">Filtros</h3>
+      <input id="q" placeholder="Pesquisar..." />
+      <div style="height:10px;"></div>
+      <select id="statusFilter">
+        <option value="">Todas</option>
+        <option value="LEAD">LEAD</option>
+        <option value="APURACAO">APURAÇÃO</option>
+        <option value="CONFIRMADO">CONFIRMADO</option>
+        <option value="ARQUIVADO">ARQUIVADO</option>
+      </select>
 
-    <div class="row">
-      <div>
-        <label class="muted">Título</label>
-        <input id="title" placeholder="Ex: Fulano foi visto comprando..."/>
+      <div style="height:18px;"></div>
+      <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
+
+      <div class="row">
+        <div>
+          <label class="muted">Título</label>
+          <input id="title" placeholder="Ex: Fulano foi visto..." />
+        </div>
+        <div>
+          <label class="muted">Fonte</label>
+          <input id="source" placeholder="Ex: zelador, grupo da família" />
+        </div>
       </div>
-      <div>
-        <label class="muted">Fonte</label>
-        <input id="source" placeholder="Ex: porteiro, grupo da família"/>
+
+      <div style="height:10px;"></div>
+      <label class="muted">Detalhes</label>
+      <textarea id="details" placeholder="Descreva com seriedade corporativa..."></textarea>
+
+      <div style="height:10px;"></div>
+      <div class="row">
+        <div>
+          <label class="muted">Status</label>
+          <select id="status">
+            <option value="LEAD">LEAD</option>
+            <option value="APURACAO">APURAÇÃO</option>
+            <option value="CONFIRMADO">CONFIRMADO</option>
+            <option value="ARQUIVADO">ARQUIVADO</option>
+          </select>
+        </div>
+        <div>
+          <label class="muted">Confiabilidade (0–100)</label>
+          <input id="cred" type="number" min="0" max="100" value="50"/>
+        </div>
       </div>
-    </div>
 
-    <div style="height:10px;"></div>
-    <label class="muted">Detalhes</label>
-    <textarea id="details" placeholder="Descreva com seriedade corporativa..."></textarea>
+      <div style="height:10px;"></div>
+      <label class="muted">Tags (separadas por vírgula)</label>
+      <input id="tags" placeholder="ouvi falar, fonte confiável, primo do amigo" />
 
-    <div style="height:10px;"></div>
-    <div class="row">
-      <div>
-        <label class="muted">Status</label>
-        <select id="status">
-          <option value="LEAD">LEAD</option>
-          <option value="APURACAO">APURAÇÃO</option>
-          <option value="CONFIRMADO">CONFIRMADO</option>
-          <option value="ARQUIVADO">ARQUIVADO</option>
-        </select>
+      <div style="height:12px;"></div>
+      <button id="createBtn">Registrar ticket</button>
+      <div id="msg" class="muted" style="margin-top:10px;"></div>
+    </section>
+
+    <!-- RIGHT: Backlog + Viewer -->
+    <section class="card">
+      <div class="cardTitle">
+        <h2 style="margin:0;">Backlog</h2>
+        <span class="muted">Clique em um item para abrir</span>
       </div>
-      <div>
-        <label class="muted">Confiabilidade (0–100)</label>
-        <input id="cred" type="number" min="0" max="100" value="50"/>
+
+      <div style="height:10px;"></div>
+      <div class="list" id="list"></div>
+
+      <div style="height:16px;"></div>
+      <h2 style="margin:0;">Visualização</h2>
+      <div id="viewerEmpty" class="muted" style="margin-top:8px;">
+        Selecione uma fofoca no backlog para ver detalhes e comentar.
       </div>
-    </div>
 
-    <div style="height:10px;"></div>
-    <label class="muted">Tags (separadas por vírgula)</label>
-    <input id="tags" placeholder="fonte confiável, ouvi falar, primo do amigo"/>
+      <div id="viewer" style="display:none; margin-top:10px;">
+        <div class="meta" id="vMeta"></div>
+        <h3 id="vTitle" style="margin: 0 0 8px 0;"></h3>
+        <div id="vDetails" class="detailsBox"></div>
 
-    <div style="height:12px;"></div>
-    <button id="createBtn">Registrar ticket</button>
-    <div id="msg" class="muted" style="margin-top:10px;"></div>
+        <div style="height:12px;"></div>
+        <div class="meta" id="vTags"></div>
 
-    <div style="height:16px;"></div>
-    <h3 style="margin:0 0 10px 0;">Backlog</h3>
-    <div class="list" id="list"></div>
+        <div style="height:12px;"></div>
+        <div class="row">
+          <button id="moveBtn">Mover status</button>
+          <button id="deleteBtn" class="danger">Excluir</button>
+        </div>
 
-    <div style="height:16px;"></div>
-    <h3 style="margin:0 0 10px 0;">Audit Log</h3>
-    <div class="list" id="audit"></div>
+        <div style="height:18px;"></div>
+        <div class="cardTitle">
+          <h3 style="margin:0;">Comentários</h3>
+          <span id="cCount" class="muted"></span>
+        </div>
 
-    <div style="height:16px;"></div>
-    <h3 style="margin:0 0 10px 0;">Leaderboard</h3>
-    <div class="list" id="leaderboard"></div>
+        <div style="height:10px;"></div>
+        <div class="commentBox">
+          <textarea id="cBody" placeholder="Escreva um comentário..."></textarea>
+          <button id="cSend" style="width:auto;">Enviar</button>
+        </div>
+        <div id="cMsg" class="muted" style="margin-top:8px;"></div>
+
+        <div style="height:10px;"></div>
+        <div class="list" id="comments"></div>
+
+        <div style="height:16px;"></div>
+        <h3 style="margin:0 0 10px 0;">Audit Log</h3>
+        <div class="list" id="audit"></div>
+
+        <div style="height:16px;"></div>
+        <h3 style="margin:0 0 10px 0;">Leaderboard</h3>
+        <div class="list" id="leaderboard"></div>
+      </div>
+    </section>
   </section>
 </main>
 
 <script>
 let TOKEN = null;
 let USERNAME = null;
-let MODE = "login"; // "login" | "register"
+let MODE = "login"; // login | register
+let SELECTED_ID = null;
+let SELECTED_GOSSIP = null;
 
-function authHeader(){
-  return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {};
-}
+function authHeader(){ return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {}; }
 
 async function api(path, opts={}){
   const res = await fetch(path, {
     ...opts,
-    headers: {
-      "Content-Type": "application/json",
-      ...(opts.headers || {}),
-      ...authHeader()
-    }
+    headers: { "Content-Type":"application/json", ...(opts.headers||{}), ...authHeader() }
   });
-
   const text = await res.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
@@ -192,12 +250,8 @@ async function api(path, opts={}){
     let msg = "Erro " + res.status;
     if (data && data.detail) {
       if (Array.isArray(data.detail)) {
-        msg = data.detail
-          .map(e => `${(e.loc || []).slice(-1)[0] || "campo"}: ${e.msg}`)
-          .join(" | ");
-      } else {
-        msg = data.detail;
-      }
+        msg = data.detail.map(e => `${(e.loc||[]).slice(-1)[0]||"campo"}: ${e.msg}`).join(" | ");
+      } else msg = data.detail;
     }
     throw new Error(msg);
   }
@@ -206,7 +260,7 @@ async function api(path, opts={}){
 
 function setAuthUI(logged){
   document.getElementById("authCard").style.display = logged ? "none" : "block";
-  document.getElementById("appCard").style.display = logged ? "block" : "none";
+  document.getElementById("appCard").style.display = logged ? "grid" : "none";
   document.getElementById("logoutBtn").style.display = logged ? "inline-block" : "none";
   document.getElementById("who").textContent = logged ? ("Logado como: " + USERNAME) : "";
 }
@@ -224,10 +278,7 @@ function setMode(mode){
   document.getElementById("authMsg").textContent = "";
 }
 
-function fmtTs(ts){
-  const d = new Date(ts * 1000);
-  return d.toLocaleString();
-}
+function fmtTs(ts){ return new Date(ts * 1000).toLocaleString(); }
 
 function renderKpis(d){
   const k = document.getElementById("kpis");
@@ -241,24 +292,20 @@ function renderKpis(d){
   k.insertAdjacentHTML("beforeend", mk(d.avg_credibility.toFixed(1), "Credibilidade média"));
 }
 
-function itemHTML(g){
-  const tags = (g.tags || []).map(t => `<span class="pill">${t}</span>`).join(" ");
+function backlogItem(g){
+  const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill">${t}</span>`).join(" ");
+  const active = (SELECTED_ID === g.id) ? "style='border-color:#3a5677;'" : "";
   return `
-  <div class="item">
+  <div class="item clickable" ${active} onclick="openGossip(${g.id})">
     <h3>${g.title}</h3>
     <div class="meta">
-      <span class="pill">Status: ${g.status}</span>
-      <span class="pill">Cred: ${g.credibility}</span>
-      <span class="pill">Fonte: ${g.source}</span>
+      <span class="pill">${g.status}</span>
+      <span class="pill">Cred ${g.credibility}</span>
       <span class="pill">Por: ${g.created_by}</span>
-      <span class="pill">Atualizado: ${fmtTs(g.updated_at)}</span>
+      <span class="pill">💬 ${g.comment_count}</span>
     </div>
-    <div style="white-space:pre-wrap; opacity:.95;">${g.details}</div>
-    <div style="margin-top:10px;">${tags}</div>
-    <div class="inline" style="margin-top:12px;">
-      <button onclick="quickMove(${g.id}, '${g.status}')">Mover status</button>
-      <button class="danger" onclick="delGossip(${g.id})">Excluir</button>
-    </div>
+    <div class="muted">${g.source} • ${fmtTs(g.updated_at)}</div>
+    <div style="margin-top:8px;">${tags}</div>
   </div>`;
 }
 
@@ -273,7 +320,7 @@ async function refresh(){
   USERNAME = me.label;
   document.getElementById("who").textContent = `Logado como: ${me.label} • Título: ${me.title} • Fofocas: ${me.total_gossips}`;
 
-  const medals = (me.badges || []).map(b => `<span class="pill">${b}</span>`).join(" ");
+  const medals = (me.badges||[]).map(b => `<span class="pill">${b}</span>`).join(" ");
   document.getElementById("profile").innerHTML = medals
     ? `Conquistas: ${medals}`
     : `<span class="muted">Conquistas: nenhuma ainda… poste mais babados 😄</span>`;
@@ -282,9 +329,69 @@ async function refresh(){
   if(q) url.searchParams.set("q", q);
   if(st) url.searchParams.set("status_filter", st);
   const gossips = await api(url.pathname + url.search);
-  document.getElementById("list").innerHTML = gossips.map(itemHTML).join("");
 
-  const audit = await api("/api/audit?limit=20");
+  document.getElementById("list").innerHTML = gossips.map(backlogItem).join("");
+
+  // mantém seleção se existir
+  if (SELECTED_ID) {
+    const still = gossips.find(x => x.id === SELECTED_ID);
+    if (still) await openGossip(SELECTED_ID, true);
+    else clearViewer();
+  }
+}
+
+function clearViewer(){
+  SELECTED_ID = null;
+  SELECTED_GOSSIP = null;
+  document.getElementById("viewerEmpty").style.display = "block";
+  document.getElementById("viewer").style.display = "none";
+}
+
+async function openGossip(id, silent=false){
+  SELECTED_ID = id;
+  SELECTED_GOSSIP = await api("/api/gossips/" + id);
+
+  document.getElementById("viewerEmpty").style.display = "none";
+  document.getElementById("viewer").style.display = "block";
+
+  document.getElementById("vTitle").textContent = SELECTED_GOSSIP.title;
+  document.getElementById("vDetails").textContent = SELECTED_GOSSIP.details;
+
+  document.getElementById("vMeta").innerHTML = `
+    <span class="pill">Status: ${SELECTED_GOSSIP.status}</span>
+    <span class="pill">Cred: ${SELECTED_GOSSIP.credibility}</span>
+    <span class="pill">Fonte: ${SELECTED_GOSSIP.source}</span>
+    <span class="pill">Por: ${SELECTED_GOSSIP.created_by}</span>
+    <span class="pill">Criado: ${fmtTs(SELECTED_GOSSIP.created_at)}</span>
+    <span class="pill">Atualizado: ${fmtTs(SELECTED_GOSSIP.updated_at)}</span>
+  `;
+
+  const tags = (SELECTED_GOSSIP.tags||[]).map(t=>`<span class="pill">${t}</span>`).join(" ");
+  document.getElementById("vTags").innerHTML = tags || `<span class="muted">Sem tags</span>`;
+
+  document.getElementById("cBody").value = "";
+  document.getElementById("cMsg").textContent = "";
+
+  await loadComments();
+  await loadAuditAndLeaderboard();
+
+  if (!silent) await refresh(); // repinta backlog com item selecionado
+}
+
+async function loadComments(){
+  if(!SELECTED_ID) return;
+  const comments = await api(`/api/gossips/${SELECTED_ID}/comments`);
+  document.getElementById("cCount").textContent = `${comments.length} comentário(s)`;
+  document.getElementById("comments").innerHTML = comments.map(c => `
+    <div class="comment">
+      <div><span class="who">${c.author}</span><span class="when">${fmtTs(c.created_at)}</span></div>
+      <div class="body">${escapeHtml(c.body)}</div>
+    </div>
+  `).join("") || `<div class="muted">Nenhum comentário ainda… seja o primeiro 😄</div>`;
+}
+
+async function loadAuditAndLeaderboard(){
+  const audit = await api("/api/audit?limit=12");
   document.getElementById("audit").innerHTML = audit.map(x => `
     <div class="item">
       <div class="meta">
@@ -309,6 +416,10 @@ async function refresh(){
   `).join("");
 }
 
+function escapeHtml(str){
+  return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+}
+
 async function create(){
   const payload = {
     title: document.getElementById("title").value.trim(),
@@ -325,81 +436,86 @@ async function create(){
     return;
   }
 
-  await api("/api/gossips", { method:"POST", body: JSON.stringify(payload) });
+  const created = await api("/api/gossips", { method:"POST", body: JSON.stringify(payload) });
   document.getElementById("msg").textContent = "Ticket registrado com excelência operacional.";
+
   document.getElementById("title").value = "";
   document.getElementById("details").value = "";
   document.getElementById("tags").value = "";
+
+  await refresh();
+  await openGossip(created.id);
+}
+
+async function delSelected(){
+  if(!SELECTED_ID) return;
+  if(!confirm("Excluir esse ticket?")) return;
+  await api("/api/gossips/" + SELECTED_ID, { method:"DELETE" });
+  clearViewer();
   await refresh();
 }
 
-async function delGossip(id){
-  if(!confirm("Excluir esse ticket de fofoca? Isso vai contra a governança de memória coletiva.")) return;
-  await api("/api/gossips/" + id, { method:"DELETE" });
-  await refresh();
-}
-
-async function quickMove(id, current){
+async function moveSelected(){
+  if(!SELECTED_GOSSIP) return;
   const order = ["LEAD","APURACAO","CONFIRMADO","ARQUIVADO"];
-  const i = order.indexOf(current);
-  const next = order[(i+1) % order.length];
+  const i = order.indexOf(SELECTED_GOSSIP.status);
+  const next = order[(i+1)%order.length];
 
-  const all = await api("/api/gossips");
-  const g = all.find(x => x.id === id);
-  if(!g) return;
-
-  const payload = { ...g, status: next };
-  await api("/api/gossips/" + id, { method:"PATCH", body: JSON.stringify(payload) });
+  const payload = { ...SELECTED_GOSSIP, status: next };
+  await api("/api/gossips/" + SELECTED_ID, { method:"PATCH", body: JSON.stringify(payload) });
+  await openGossip(SELECTED_ID, true);
   await refresh();
 }
 
-// ===== Auth UX =====
+async function sendComment(){
+  if(!SELECTED_ID) return;
+  const body = document.getElementById("cBody").value.trim();
+  if(body.length < 1){
+    document.getElementById("cMsg").textContent = "Escreva algo antes de enviar.";
+    return;
+  }
+  await api(`/api/gossips/${SELECTED_ID}/comments`, { method:"POST", body: JSON.stringify({body}) });
+  document.getElementById("cBody").value = "";
+  document.getElementById("cMsg").textContent = "Comentário enviado ✅";
+  await openGossip(SELECTED_ID, true);
+  await refresh();
+}
+
+// ===== Auth =====
 document.getElementById("goRegisterBtn").onclick = () => setMode("register");
 document.getElementById("backToLoginBtn").onclick = () => setMode("login");
 
-// Cadastro (agora salva nome no backend)
 document.getElementById("registerBtn").onclick = async () => {
   try{
     const name = document.getElementById("n").value.trim();
     const username = document.getElementById("u").value.trim();
     const password = document.getElementById("p").value;
 
-    if (name.length < 2) {
-      document.getElementById("authMsg").textContent = "Nome precisa ter pelo menos 2 caracteres.";
-      return;
-    }
-    if (username.length < 3) {
-      document.getElementById("authMsg").textContent = "Usuário precisa ter pelo menos 3 caracteres.";
-      return;
-    }
-    if (password.length < 4) {
-      document.getElementById("authMsg").textContent = "Senha precisa ter pelo menos 4 caracteres.";
-      return;
-    }
+    if(name.length < 2) return (document.getElementById("authMsg").textContent = "Nome mínimo 2 caracteres.");
+    if(username.length < 3) return (document.getElementById("authMsg").textContent = "Usuário mínimo 3 caracteres.");
+    if(password.length < 4) return (document.getElementById("authMsg").textContent = "Senha mínima 4 caracteres.");
 
     await api("/api/register", { method:"POST", body: JSON.stringify({name, username, password}) });
-    document.getElementById("authMsg").textContent = `Conta criada, ${name}! Agora volte e faça login.`;
+    document.getElementById("authMsg").textContent = `Conta criada, ${name}! Volte e faça login.`;
   }catch(e){
     document.getElementById("authMsg").textContent = e.message;
   }
 };
 
-// Login
 document.getElementById("loginBtn").onclick = async () => {
   try{
     const username = document.getElementById("u").value.trim();
     const password = document.getElementById("p").value;
 
-    if (username.length < 1 || password.length < 1) {
-      document.getElementById("authMsg").textContent = "Preencha usuário e senha.";
-      return;
-    }
+    if(!username || !password) return (document.getElementById("authMsg").textContent = "Preencha usuário e senha.");
 
     const out = await api("/api/login", { method:"POST", body: JSON.stringify({username, password}) });
     TOKEN = out.token;
     USERNAME = out.display_name ? `${out.display_name} (@${out.username})` : out.username;
+
     setAuthUI(true);
     await refresh();
+    clearViewer();
   }catch(e){
     document.getElementById("authMsg").textContent = e.message;
   }
@@ -410,6 +526,7 @@ document.getElementById("logoutBtn").onclick = async () => {
   TOKEN = null; USERNAME = null;
   setAuthUI(false);
   setMode("login");
+  clearViewer();
 };
 
 document.getElementById("createBtn").onclick = create;
@@ -417,8 +534,12 @@ document.getElementById("refreshBtn").onclick = refresh;
 document.getElementById("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refresh(); });
 document.getElementById("statusFilter").addEventListener("change", refresh);
 
-// Start in login mode
+document.getElementById("deleteBtn").onclick = delSelected;
+document.getElementById("moveBtn").onclick = moveSelected;
+document.getElementById("cSend").onclick = sendComment;
+
 setMode("login");
+clearViewer();
 </script>
 </body>
 </html>
