@@ -16,21 +16,18 @@ APP_DIR = Path(__file__).parent
 DB_PATH = APP_DIR / "gossipcrm.db"
 STATIC_DIR = APP_DIR / "static"
 
-app = FastAPI(title="GossipCRM", version="0.6")
+app = FastAPI(title="GossipCRM", version="0.7")
 
 STATIC_DIR.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 security = HTTPBearer(auto_error=False)
 
-STATUSES = ["LEAD", "APURACAO", "CONFIRMADO", "ARQUIVADO"]
+# Removido LEAD
+STATUSES = ["APURACAO", "CONFIRMADO", "ARQUIVADO"]
 REACTIONS = ["LIKE", "LOL", "WOW", "SUS", "FIRE"]  # 👍 😂 😮 🤔 🔥
 
-# =========================
-# Helpers: DB + Security
-# =========================
-
-PEPPER = "gossipcrm_pepper_v1"  # MVP. Em produção: env + bcrypt/argon2.
+PEPPER = "gossipcrm_pepper_v1"
 
 def hash_password(password: str) -> str:
     return hashlib.sha256((PEPPER + password).encode("utf-8")).hexdigest()
@@ -47,6 +44,17 @@ def ensure_column(con: sqlite3.Connection, table: str, column: str, ddl: str):
     cols = [r["name"] for r in con.execute(f"PRAGMA table_info({table})").fetchall()]
     if column not in cols:
         con.execute(ddl)
+
+def normalize_status(s: str) -> str:
+    # Compatibilidade com dados antigos
+    if not s:
+        return "APURACAO"
+    s = s.strip().upper()
+    if s == "LEAD":
+        return "APURACAO"
+    if s not in STATUSES:
+        return "APURACAO"
+    return s
 
 def init_db():
     con = db()
@@ -99,7 +107,6 @@ def init_db():
         )
     """)
 
-    # Comments
     cur.execute("""
         CREATE TABLE IF NOT EXISTS comments (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,7 +119,6 @@ def init_db():
         )
     """)
 
-    # Reactions (one reaction type per user per gossip)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS reactions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -126,7 +132,6 @@ def init_db():
         )
     """)
 
-    # Notifications (mentions + comments on your gossip)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -143,7 +148,6 @@ def init_db():
         )
     """)
 
-    # Seed admin (backup). Você pode remover depois se quiser.
     cur.execute("SELECT id FROM users WHERE username = ?", ("admin",))
     if cur.fetchone() is None:
         cur.execute(
@@ -211,11 +215,6 @@ def reaction_counts(con: sqlite3.Connection, gid: int) -> Dict[str, int]:
         out[r["reaction"]] = int(r["c"])
     return out
 
-def reaction_score(counts: Dict[str,int]) -> int:
-    # dá pra ajustar o "algoritmo do babado"
-    w = {"LIKE": 1, "LOL": 2, "WOW": 2, "SUS": 1, "FIRE": 3}
-    return sum(counts.get(k,0)*w.get(k,1) for k in counts)
-
 MENTION_RE = re.compile(r"@([a-zA-Z0-9_]{3,20})")
 
 def extract_mentions(text: str) -> List[str]:
@@ -257,6 +256,20 @@ def badges_for(total: int, apuracao: int, confirmado: int, arquivado: int) -> Li
     if arquivado >= 20: b.append("🧹 Arquivista do Caos (20 arquivados)")
     return b
 
+def user_stats(con: sqlite3.Connection, user_id: int) -> Dict:
+    total = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=?", (user_id,)).fetchone()["c"]
+    ap = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=? AND status='APURACAO'", (user_id,)).fetchone()["c"]
+    cf = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=? AND status='CONFIRMADO'", (user_id,)).fetchone()["c"]
+    ar = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=? AND status='ARQUIVADO'", (user_id,)).fetchone()["c"]
+    return {
+        "total": int(total),
+        "apuracao": int(ap),
+        "confirmado": int(cf),
+        "arquivado": int(ar),
+        "title": title_for(int(total)),
+        "badges": badges_for(int(total), int(ap), int(cf), int(ar)),
+    }
+
 # =========================
 # Models
 # =========================
@@ -295,6 +308,7 @@ class GossipOut(BaseModel):
     updated_at: int
     created_by: str
     created_by_id: int
+    created_by_title: str = ""
     comment_count: int = 0
     reactions: Dict[str,int] = {}
 
@@ -325,6 +339,14 @@ class NotificationOut(BaseModel):
     message: str
     created_at: int
     read_at: Optional[int]
+
+class UserProfileOut(BaseModel):
+    username: str
+    display_name: Optional[str] = None
+    label: str
+    title: str
+    badges: List[str]
+    total_gossips: int
 
 # =========================
 # Front
@@ -398,26 +420,8 @@ def logout(user=Depends(get_current_user), creds: Optional[HTTPAuthorizationCred
     return {"ok": True}
 
 # =========================
-# Gossips / Feed / Backlog
+# Helpers for Gossip output
 # =========================
-
-def row_to_gossip_out(con: sqlite3.Connection, row) -> Dict:
-    counts = reaction_counts(con, row["id"])
-    return {
-        "id": row["id"],
-        "title": row["title"],
-        "details": row["details"],
-        "source": row["source"],
-        "credibility": row["credibility"],
-        "status": row["status"],
-        "tags": [t for t in row["tags"].split(",") if t],
-        "created_at": row["created_at"],
-        "updated_at": row["updated_at"],
-        "created_by": row["created_by_label"],
-        "created_by_id": row["created_by_id"],
-        "comment_count": int(row["comment_count"] or 0),
-        "reactions": counts,
-    }
 
 def base_gossip_select_sql(where: str) -> str:
     return f"""
@@ -425,17 +429,54 @@ def base_gossip_select_sql(where: str) -> str:
           g.*,
           {gossip_label_sql()} as created_by_label,
           u.id as created_by_id,
+          u.username as created_by_username,
           (SELECT COUNT(*) FROM comments c WHERE c.gossip_id = g.id) AS comment_count
         FROM gossips g
         JOIN users u ON u.id = g.created_by
         WHERE {where}
     """
 
+def add_author_titles(con: sqlite3.Connection, rows: List[sqlite3.Row]) -> Dict[int, str]:
+    # pega contagem por autor só dos autores presentes na listagem
+    author_ids = sorted({int(r["created_by_id"]) for r in rows})
+    if not author_ids:
+        return {}
+    placeholders = ",".join(["?"] * len(author_ids))
+    counts = con.execute(
+        f"SELECT created_by, COUNT(*) AS c FROM gossips WHERE created_by IN ({placeholders}) GROUP BY created_by",
+        author_ids
+    ).fetchall()
+    by_id = {int(r["created_by"]): int(r["c"]) for r in counts}
+    return {aid: title_for(by_id.get(aid, 0)) for aid in author_ids}
+
+def row_to_gossip_out(con: sqlite3.Connection, row, author_title: str) -> Dict:
+    counts = reaction_counts(con, row["id"])
+    return {
+        "id": row["id"],
+        "title": row["title"],
+        "details": row["details"],
+        "source": row["source"],
+        "credibility": row["credibility"],
+        "status": normalize_status(row["status"]),
+        "tags": [t for t in (row["tags"] or "").split(",") if t],
+        "created_at": row["created_at"],
+        "updated_at": row["updated_at"],
+        "created_by": row["created_by_label"],
+        "created_by_id": row["created_by_id"],
+        "created_by_title": author_title,
+        "comment_count": int(row["comment_count"] or 0),
+        "reactions": counts,
+    }
+
+# =========================
+# Feed / Backlog / Gossips
+# =========================
+
 @app.get("/api/feed", response_model=List[GossipOut])
 def feed(
     q: Optional[str] = None,
     status_filter: Optional[str] = None,
-    sort: str = "hot",   # hot | new | commented
+    sort: str = "hot",
     user=Depends(get_current_user)
 ):
     con = db()
@@ -447,19 +488,20 @@ def feed(
         like = f"%{q}%"
         params += [like, like, like, like]
     if status_filter:
+        sf = normalize_status(status_filter)
         sql += " AND g.status = ?"
-        params.append(status_filter)
+        params.append(sf)
 
     if sort == "new":
         sql += " ORDER BY g.created_at DESC"
     elif sort == "commented":
         sql += " ORDER BY comment_count DESC, g.updated_at DESC"
     else:
-        # hot: primeiro por comentários, depois por updated_at (front soma reações na UI)
         sql += " ORDER BY comment_count DESC, g.updated_at DESC"
 
     rows = con.execute(sql, params).fetchall()
-    out = [row_to_gossip_out(con, r) for r in rows]
+    titles = add_author_titles(con, rows)
+    out = [row_to_gossip_out(con, r, titles.get(int(r["created_by_id"]), "")) for r in rows]
     con.close()
     return out
 
@@ -478,12 +520,14 @@ def my_backlog(
         like = f"%{q}%"
         params += [like, like, like, like]
     if status_filter:
+        sf = normalize_status(status_filter)
         sql += " AND g.status = ?"
-        params.append(status_filter)
+        params.append(sf)
 
     sql += " ORDER BY g.updated_at DESC"
     rows = con.execute(sql, params).fetchall()
-    out = [row_to_gossip_out(con, r) for r in rows]
+    titles = add_author_titles(con, rows)
+    out = [row_to_gossip_out(con, r, titles.get(int(r["created_by_id"]), "")) for r in rows]
     con.close()
     return out
 
@@ -494,15 +538,15 @@ def get_gossip(gid: int, user=Depends(get_current_user)):
     if row is None:
         con.close()
         raise HTTPException(404, detail="Não encontrado")
-    out = row_to_gossip_out(con, row)
+    # título do autor
+    titles = add_author_titles(con, [row])
+    out = row_to_gossip_out(con, row, titles.get(int(row["created_by_id"]), ""))
     con.close()
     return out
 
 @app.post("/api/gossips", response_model=GossipOut)
 def create_gossip(data: GossipIn, user=Depends(get_current_user)):
-    if data.status not in STATUSES:
-        raise HTTPException(400, detail="Status inválido")
-
+    st = normalize_status(data.status)
     tags_csv = ",".join([t.strip() for t in data.tags if t.strip()])
     now = int(time.time())
 
@@ -511,12 +555,13 @@ def create_gossip(data: GossipIn, user=Depends(get_current_user)):
     cur.execute("""
         INSERT INTO gossips (title, details, source, credibility, status, tags, created_at, updated_at, created_by)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (data.title, data.details, data.source, data.credibility, data.status, tags_csv, now, now, user["id"]))
+    """, (data.title, data.details, data.source, data.credibility, st, tags_csv, now, now, user["id"]))
     gid = cur.lastrowid
     con.commit()
 
     row = con.execute(base_gossip_select_sql("g.id = ?"), (gid,)).fetchone()
-    out = row_to_gossip_out(con, row)
+    titles = add_author_titles(con, [row])
+    out = row_to_gossip_out(con, row, titles.get(int(row["created_by_id"]), ""))
     con.close()
 
     log_action(user["id"], "CREATE", "gossip", gid, f"title={data.title}")
@@ -531,9 +576,7 @@ def require_owner(con: sqlite3.Connection, gid: int, user_id: int):
 
 @app.patch("/api/gossips/{gid}", response_model=GossipOut)
 def update_gossip(gid: int, data: GossipIn, user=Depends(get_current_user)):
-    if data.status not in STATUSES:
-        raise HTTPException(400, detail="Status inválido")
-
+    st = normalize_status(data.status)
     tags_csv = ",".join([t.strip() for t in data.tags if t.strip()])
     now = int(time.time())
 
@@ -544,14 +587,15 @@ def update_gossip(gid: int, data: GossipIn, user=Depends(get_current_user)):
         UPDATE gossips
         SET title=?, details=?, source=?, credibility=?, status=?, tags=?, updated_at=?
         WHERE id=?
-    """, (data.title, data.details, data.source, data.credibility, data.status, tags_csv, now, gid))
+    """, (data.title, data.details, data.source, data.credibility, st, tags_csv, now, gid))
     con.commit()
 
     row = con.execute(base_gossip_select_sql("g.id = ?"), (gid,)).fetchone()
-    out = row_to_gossip_out(con, row)
+    titles = add_author_titles(con, [row])
+    out = row_to_gossip_out(con, row, titles.get(int(row["created_by_id"]), ""))
     con.close()
 
-    log_action(user["id"], "UPDATE", "gossip", gid, f"status={data.status}")
+    log_action(user["id"], "UPDATE", "gossip", gid, f"status={st}")
     return out
 
 @app.delete("/api/gossips/{gid}")
@@ -623,11 +667,9 @@ def create_comment(gid: int, data: CommentIn, user=Depends(get_current_user)):
     )
     cid = cur.lastrowid
 
-    # bump updated_at to keep “hot”
     con.execute("UPDATE gossips SET updated_at=? WHERE id=?", (now, gid))
     con.commit()
 
-    # Notify author: someone commented your gossip
     author_id = int(g["created_by"])
     if author_id != user["id"]:
         create_notification(
@@ -639,7 +681,6 @@ def create_comment(gid: int, data: CommentIn, user=Depends(get_current_user)):
             message=f"Comentaram na sua fofoca: “{g['title']}”"
         )
 
-    # Mentions: @username
     mentions = extract_mentions(body)
     if mentions:
         rows = con.execute(
@@ -656,7 +697,6 @@ def create_comment(gid: int, data: CommentIn, user=Depends(get_current_user)):
                 message=f"Você foi mencionado(a) em um comentário: @{r['username']}"
             )
 
-    # Build response
     row = con.execute(f"""
         SELECT
           c.id, c.gossip_id, c.body, c.created_at,
@@ -709,7 +749,6 @@ def toggle_reaction(gid: int, data: ToggleReactionIn, user=Depends(get_current_u
         con.execute("DELETE FROM reactions WHERE id=?", (row["id"],))
         action = "REMOVE"
 
-    # bump updated_at to keep “hot”
     con.execute("UPDATE gossips SET updated_at=? WHERE id=?", (now, gid))
     con.commit()
 
@@ -815,11 +854,7 @@ def audit(limit: int = 30, user=Depends(get_current_user)):
 @app.get("/api/me")
 def me(user=Depends(get_current_user)):
     con = db()
-    total = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=?", (user["id"],)).fetchone()["c"]
-    ap = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=? AND status='APURACAO'", (user["id"],)).fetchone()["c"]
-    cf = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=? AND status='CONFIRMADO'", (user["id"],)).fetchone()["c"]
-    ar = con.execute("SELECT COUNT(*) c FROM gossips WHERE created_by=? AND status='ARQUIVADO'", (user["id"],)).fetchone()["c"]
-
+    st = user_stats(con, user["id"])
     row = con.execute("SELECT username, display_name FROM users WHERE id=?", (user["id"],)).fetchone()
     con.close()
 
@@ -827,10 +862,50 @@ def me(user=Depends(get_current_user)):
         "username": row["username"],
         "display_name": row["display_name"],
         "label": display_label(row["username"], row["display_name"]),
-        "total_gossips": total,
-        "title": title_for(total),
-        "badges": badges_for(total, ap, cf, ar),
+        "total_gossips": st["total"],
+        "title": st["title"],
+        "badges": st["badges"],
     }
+
+@app.get("/api/users/{username}", response_model=UserProfileOut)
+def user_profile(username: str, user=Depends(get_current_user)):
+    uname = username.strip().lower()
+    con = db()
+    row = con.execute("SELECT id, username, display_name FROM users WHERE username=?", (uname,)).fetchone()
+    if row is None:
+        con.close()
+        raise HTTPException(404, detail="Usuário não encontrado")
+
+    st = user_stats(con, int(row["id"]))
+    con.close()
+
+    return {
+        "username": row["username"],
+        "display_name": row["display_name"],
+        "label": display_label(row["username"], row["display_name"]),
+        "title": st["title"],
+        "badges": st["badges"],
+        "total_gossips": st["total"],
+    }
+
+@app.get("/api/users/{username}/gossips", response_model=List[GossipOut])
+def user_gossips(username: str, limit: int = 50, user=Depends(get_current_user)):
+    uname = username.strip().lower()
+    con = db()
+    u = con.execute("SELECT id FROM users WHERE username=?", (uname,)).fetchone()
+    if u is None:
+        con.close()
+        raise HTTPException(404, detail="Usuário não encontrado")
+
+    uid = int(u["id"])
+    rows = con.execute(
+        base_gossip_select_sql("g.created_by = ?") + " ORDER BY g.created_at DESC LIMIT ?",
+        (uid, limit)
+    ).fetchall()
+    titles = add_author_titles(con, rows)
+    out = [row_to_gossip_out(con, r, titles.get(int(r["created_by_id"]), "")) for r in rows]
+    con.close()
+    return out
 
 @app.get("/api/leaderboard")
 def leaderboard(limit: int = 10, user=Depends(get_current_user)):
