@@ -3,916 +3,977 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>FofocaDoGrupo — Fofoca Management</title>
+  <title>GossipCRM — Enterprise Fofoca Management</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     body { margin: 0; background: #0b0f14; color: #e6edf3; }
-    header { padding: 16px 20px; border-bottom: 1px solid #1f2a37; display:flex; gap:12px; align-items:center; }
+    header { padding: 18px 22px; border-bottom: 1px solid #1f2a37; display:flex; gap:12px; align-items:center; }
     .brand { font-weight: 800; letter-spacing: 0.5px; }
     .tagline { opacity: .75; font-size: 12px; }
-
-    .wrap { max-width: 1600px; margin: 0 auto; }
-
-    main.wrap {
-      display: grid;
-      grid-template-columns: minmax(460px, 560px) minmax(560px, 760px) minmax(420px, 560px);
-      gap: 16px;
-      padding: 16px;
-      align-items:start;
+    .spacer { flex:1; }
+    .topright { display:flex; gap:10px; align-items:center; }
+    .pill { border: 1px solid #243244; background:#0f1620; padding: 8px 10px; border-radius: 12px; font-size: 12px; opacity: .92; }
+    main { display: grid; grid-template-columns: 420px 1fr; gap: 16px; padding: 16px; }
+    @media (max-width: 980px){
+      main { grid-template-columns: 1fr; }
     }
-
     .card { background: #0f1620; border: 1px solid #1f2a37; border-radius: 14px; padding: 14px; }
-    .cardTitle { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .muted { opacity: .7; font-size: 12px; }
     input, textarea, select, button {
       width: 100%; box-sizing: border-box; padding: 10px 10px; border-radius: 10px;
       border: 1px solid #243244; background: #0b111a; color: #e6edf3; outline: none;
     }
     textarea { min-height: 90px; resize: vertical; }
-    button { cursor: pointer; background: #1b3a57; border-color: #2b4a66; font-weight: 700; }
-    button:hover { filter: brightness(1.08); }
-    button:disabled { opacity: .45; cursor:not-allowed; filter:none; }
-    .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .muted { opacity: .75; font-size: 12px; }
-
-    .pill {
-      display:inline-flex; align-items:center; gap:6px;
-      padding: 2px 8px; border-radius: 999px;
-      border: 1px solid #2a3a52; font-size: 11px; line-height: 1.4;
-      opacity:.92; white-space: nowrap;
-    }
-    .pill.small { padding: 2px 7px; font-size: 11px; opacity: .9; }
-    .pill.ghost { background: transparent; }
-    .danger { background:#4a1d1d; border-color:#6a2b2b; }
-    .good { background:#153a2a; border-color:#1f5b40; }
-    .ghost { background: transparent; border-color: #2a3a52; }
-
-    .kpis { display:flex; gap:10px; flex-wrap:wrap; }
-    .kpi { background:#0b111a; border:1px solid #203044; border-radius: 14px; padding: 10px 12px; min-width: 140px; }
-    .kpi .v { font-size: 18px; font-weight: 800; }
-    .kpi .l { font-size: 12px; opacity:.75; }
-
-    .list { display:flex; flex-direction: column; gap: 10px; }
-
-    .feedGrid { display: grid; grid-template-columns: 1fr; gap: 10px; }
-    @media (min-width: 1200px){ .feedGrid { grid-template-columns: 1fr 1fr; } }
-
-    .feedItem{
-      border: 1px solid #203044; background:#0b111a;
-      border-radius: 14px; padding: 12px;
-      display:flex; flex-direction: column; gap: 10px;
-    }
-    .feedItem.active{ border-color:#3a5677; }
-    .feedItem:hover{ border-color:#2d425c; }
-    .feedTop{ display:flex; align-items:flex-start; justify-content: space-between; gap: 12px; }
-    .feedTitle{ margin: 0; font-size: 16px; line-height: 1.25; font-weight: 800; }
-    .openBtn{
-      width:auto; padding: 8px 10px; border-radius: 10px;
-      background:#153a2a; border-color:#1f5b40; white-space: nowrap;
-    }
-    .metaRow{ display:flex; gap: 8px; flex-wrap:wrap; }
-    .preview{
-      opacity:.9; font-size: 13px; line-height: 1.35;
-      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .reactLine{ display:flex; gap: 8px; flex-wrap:wrap; }
-    .reactLine .pill{ opacity:.9; }
-
-    .detailsBox { white-space:pre-wrap; line-height:1.4; }
-    .commentBox { display:flex; gap:10px; align-items:flex-start; }
-    .commentBox textarea { min-height: 60px; }
-    .comment { border:1px solid #203044; border-radius: 14px; background:#0b111a; padding: 10px; }
-    .comment .who { font-weight:700; }
-    .comment .when { opacity:.7; font-size:12px; margin-left:6px; }
-    .comment .body { white-space:pre-wrap; margin-top:6px; }
-
-    .reactRow { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
-    .reactBtn { width:auto; padding: 8px 10px; background: transparent; border-color:#2a3a52; }
-    .reactBtn:hover { filter:none; border-color:#3a5677; }
-
-    .topRight { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; margin-left:auto; }
-    .bell { width:auto; padding: 10px 12px; background: transparent; border-color:#2a3a52; position:relative; }
-    .badge { position:absolute; top:-6px; right:-6px; background:#153a2a; border:1px solid #1f5b40; padding:2px 6px; border-radius:999px; font-size:12px; }
-
-    .notifPanel { display:none; margin-top:10px; }
-    .notifItem { border:1px solid #203044; background:#0b111a; border-radius:14px; padding:10px; }
-    .notifItem.unread { border-color:#3a5677; }
+    button { cursor: pointer; background: #16324f; border-color: #274d78; font-weight: 650; }
+    button.secondary { background:#0b111a; border-color:#243244; font-weight: 650; }
+    button.success { background:#153a2a; border-color:#1f5b40; }
+    button.danger { background:#3a1520; border-color:#6b2433; }
+    button:disabled { opacity:.45; cursor:not-allowed; }
     .inline { display:flex; gap:10px; }
-    .inline button { width:auto; }
-
-    .tabs { display:flex; gap:10px; flex-wrap:wrap; }
-    .tabbtn { width:auto; padding: 10px 12px; }
-    .tabbtn.active { background:#153a2a; border-color:#1f5b40; }
-
-    /* Modals simples */
-    .modalBackdrop{
-      display:none;
-      position:fixed; inset:0;
-      background: rgba(0,0,0,.55);
-      z-index: 50;
-      padding: 16px;
+    .inline > * { flex:1; }
+    .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .badge { display:inline-flex; gap:6px; align-items:center; border:1px solid #243244; background:#0b111a; padding: 4px 8px; border-radius: 999px; font-size: 12px; opacity:.95; }
+    .kpi { display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .kpi .mini { background:#0b111a; border:1px solid #243244; border-radius: 12px; padding: 10px; }
+    .kpi .mini .n { font-size: 20px; font-weight: 800; line-height: 1.1; }
+    .kpi .mini .t { font-size: 11px; opacity:.75; }
+    .list { display:flex; flex-direction: column; gap:10px; }
+    .item { background:#0b111a; border:1px solid #243244; border-radius: 14px; padding: 12px; }
+    .item h4 { margin:0 0 6px 0; font-size: 14px; }
+    .item .meta { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .item .preview { margin-top: 8px; opacity:.9; font-size: 12px; line-height: 1.3; white-space: pre-line; }
+    .btnRow { margin-top: 10px; display:flex; gap:10px; }
+    .btnRow button { width:auto; padding: 8px 10px; }
+    .split { display:grid; grid-template-columns: 1fr 380px; gap: 16px; }
+    @media (max-width: 1100px){
+      .split { grid-template-columns: 1fr; }
     }
-    .modal{
-      max-width: 720px;
-      margin: 40px auto;
-      background: #0f1620;
-      border: 1px solid #1f2a37;
-      border-radius: 14px;
-      padding: 14px;
-    }
-    .modalHeader{ display:flex; justify-content:space-between; align-items:center; gap:10px; }
-    .modalHeader h3{ margin:0; }
-    .modalClose{ width:auto; background: transparent; border-color:#2a3a52; }
-    .linkBtn{
-      width:auto;
-      background: transparent;
-      border-color:#2a3a52;
-      padding: 6px 10px;
-      font-weight: 700;
-    }
-    .authorLink{
-      cursor:pointer;
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
-    @media (max-width: 1300px){
-      main.wrap { grid-template-columns: minmax(460px, 560px) 1fr; }
-      #viewerCard { grid-column: 1 / -1; }
-    }
-    @media (max-width: 980px){
-      main.wrap { grid-template-columns: 1fr; }
-      .kpi { min-width: 120px; }
-      #viewerCard { grid-column: auto; }
-      .feedGrid { grid-template-columns: 1fr; }
-    }
-
-    /* Viewer sticky no desktop */
-    @media (min-width: 1301px){
-      #viewerCard{
-        position: sticky;
-        top: 16px;
-        align-self: start;
-        max-height: calc(100vh - 32px);
-        overflow: auto;
-      }
-    }
+    .hr { height:1px; background:#1f2a37; margin: 12px 0; }
+    .mention { color:#8ad1ff; font-weight: 650; }
+    .reactBar { display:flex; gap:8px; flex-wrap:wrap; margin-top: 8px; }
+    .reactBtn { width:auto; padding: 6px 10px; font-size: 12px; border-radius: 999px; background:#0f1620; border-color:#243244; }
+    .reactBtn.on { background:#1b2b3a; border-color:#3b6fa3; }
+    .tabs { display:flex; gap:10px; align-items:center; }
+    .tabs button { width:auto; padding: 8px 10px; border-radius: 999px; }
+    .tabs button.active { background:#153a2a; border-color:#1f5b40; }
+    .rightTop { display:flex; align-items:center; justify-content:space-between; gap: 10px; flex-wrap:wrap; }
   </style>
 </head>
 
 <body>
-<header class="wrap">
+<header>
   <div>
-    <div class="brand">Fofoca Do Grupo</div>
-    <div class="tagline">Fofoca Management • Observability • Compliance • Governança de Tias</div>
+    <div class="brand">GossipCRM</div>
+    <div class="tagline">Enterprise Fofoca Management • Observability • Compliance • Governança de Tias</div>
   </div>
-
-  <div class="topRight">
-    <button id="bellBtn" class="bell" style="display:none;">🔔
-      <span id="bellBadge" class="badge" style="display:none;">0</span>
-    </button>
-    <span id="who" class="muted"></span>
-    <button id="logoutBtn" style="width:auto; display:none;">Sair</button>
+  <div class="spacer"></div>
+  <div class="topright">
+    <div class="pill" id="who">Não logado</div>
+    <button id="logoutBtn" class="secondary" style="width:auto; display:none;">Sair</button>
   </div>
 </header>
 
-<main class="wrap">
+<main>
   <!-- AUTH -->
   <section class="card" id="authCard">
-    <h2 id="authTitle" style="margin-top:0;">Acesso</h2>
-    <div id="authHint" class="muted">
-      Entre com sua conta. Se ainda não tiver, clique em <b>Criar conta</b>.
+    <h2 style="margin-top:0;">Acesso</h2>
+    <div class="muted">Crie sua conta e vire uma entidade do bairro. (Login sem email real)</div>
+
+    <div style="height:10px"></div>
+
+    <div id="authLoginFields">
+      <input id="u" placeholder="Usuário (ex: lucas_fofoca)" autocomplete="username"/>
+      <div style="height:10px"></div>
+      <input id="p" placeholder="Senha" type="password" autocomplete="current-password"/>
     </div>
 
-    <div style="margin-top:10px; display:none;" id="nameField">
-      <input id="n" placeholder="Nome (ex: Dona Cida do 302)"/>
+    <div id="authRegisterFields" style="display:none;">
+      <input id="r_u" placeholder="Login (ex: lucas_fofoca)" autocomplete="username"/>
+      <div style="height:10px"></div>
+      <input id="r_name" placeholder="Nome (ex: Lucas)" autocomplete="name"/>
+      <div style="height:10px"></div>
+      <input id="r_p" placeholder="Senha" type="password" autocomplete="new-password"/>
     </div>
 
-    <div style="margin-top:10px;">
-      <input id="u" placeholder="Usuário (ex: lucas_fofoca)" />
-    </div>
+    <div style="height:10px"></div>
 
-    <div style="margin-top:10px;">
-      <input id="p" placeholder="Senha" type="password" />
-    </div>
+    <button id="loginBtn">Entrar</button>
 
-    <div class="row" id="authButtons" style="margin-top:10px;">
-      <button id="loginBtn">Entrar</button>
-      <button id="goRegisterBtn" class="good">Criar conta</button>
-    </div>
-
-    <div id="registerButtons" style="display:none; margin-top:10px;">
-      <button id="registerBtn" class="good">Confirmar cadastro</button>
-      <div style="height:10px;"></div>
-      <button id="backToLoginBtn" class="ghost">Voltar para o login</button>
+    <div class="inline" style="margin-top:10px;">
+      <button id="goRegisterBtn" class="success">Criar conta</button>
+      <button id="backToLoginBtn" class="secondary" style="display:none;">Voltar para o login</button>
     </div>
 
     <div id="authMsg" class="muted" style="margin-top:10px;"></div>
+
+    <div class="hr"></div>
+    <div class="muted">
+      Dica: seu “email” interno vira <b>usuario@fofoca.local</b> automaticamente.
+    </div>
   </section>
 
-  <!-- SIDEBAR -->
-  <section class="card" id="sidebarCard" style="display:none;">
-    <div class="cardTitle">
-      <h2 style="margin:0;">Dashboard</h2>
-      <button id="refreshBtn" style="width:auto;">Atualizar</button>
-    </div>
-
-    <div style="height:10px;"></div>
-    <div class="kpis" id="kpis"></div>
-
-    <div style="height:10px;"></div>
-    <div id="profile" class="muted"></div>
-
-    <div style="height:14px;"></div>
-    <h3 style="margin:0 0 10px 0;">Filtros</h3>
-
-    <div class="row">
-      <input id="q" placeholder="Pesquisar..." />
-      <select id="statusFilter">
-        <option value="">Todas</option>
-        <option value="APURACAO">APURAÇÃO</option>
-        <option value="CONFIRMADO">CONFIRMADO</option>
-        <option value="ARQUIVADO">ARQUIVADO</option>
-      </select>
-    </div>
-
-    <div style="height:10px;"></div>
-    <div class="row">
-      <select id="sort">
-        <option value="hot">Feed: Quentes</option>
-        <option value="new">Feed: Recentes</option>
-        <option value="commented">Feed: Mais comentadas</option>
-      </select>
-      <button id="applyBtn" class="ghost">Aplicar</button>
-    </div>
-
-    <div style="height:18px;"></div>
-    <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
-
-    <div class="row">
+  <!-- APP -->
+  <section class="card" id="appCard" style="display:none;">
+    <div class="rightTop">
       <div>
-        <label class="muted">Título</label>
-        <input id="title" placeholder="Ex: Fulano foi visto..." />
+        <h2 style="margin:0;">Dashboard</h2>
+        <div class="muted" id="profileLine">Carregando perfil…</div>
       </div>
-      <div>
-        <label class="muted">Fonte</label>
-        <input id="source" placeholder="Ex: zelador, grupo da família" />
+      <div class="tabs">
+        <button id="tabFeed" class="active">Feed (grupo)</button>
+        <button id="tabMine" class="secondary">Meu Backlog</button>
+        <button id="tabProfile" class="secondary">Perfil</button>
+        <button id="refreshBtn" style="width:auto;">Atualizar</button>
       </div>
     </div>
-
-    <div style="height:10px;"></div>
-    <label class="muted">Detalhes</label>
-    <textarea id="details" placeholder="Dica: use @usuario para mencionar alguém 😄"></textarea>
-
-    <div style="height:10px;"></div>
-    <div class="row">
-      <div>
-        <label class="muted">Status</label>
-        <select id="status">
-          <option value="APURACAO">APURAÇÃO</option>
-          <option value="CONFIRMADO">CONFIRMADO</option>
-          <option value="ARQUIVADO">ARQUIVADO</option>
-        </select>
-      </div>
-      <div>
-        <label class="muted">Confiabilidade (0–100)</label>
-        <input id="cred" type="number" min="0" max="100" value="50"/>
-      </div>
-    </div>
-
-    <div style="height:10px;"></div>
-    <label class="muted">Tags (separadas por vírgula)</label>
-    <input id="tags" placeholder="ouvi falar, fonte confiável, primo do amigo" />
 
     <div style="height:12px;"></div>
-    <button id="createBtn">Registrar ticket</button>
-    <div id="msg" class="muted" style="margin-top:10px;"></div>
 
-    <div class="notifPanel" id="notifPanel">
-      <div style="height:10px;"></div>
-      <h3 style="margin:0 0 10px 0;">Notificações</h3>
-      <div class="list" id="notifs"></div>
-    </div>
-  </section>
-
-  <!-- EXPLORE (CENTRO) -->
-  <section class="card" id="exploreCard" style="display:none;">
-    <div class="cardTitle">
-      <h2 style="margin:0;">Explorar</h2>
-      <div class="tabs">
-        <button id="tabFeed" class="tabbtn active">Feed (grupo)</button>
-        <button id="tabBacklog" class="tabbtn">Meu Backlog</button>
-      </div>
+    <div class="kpi">
+      <div class="mini"><div class="n" id="k_total">0</div><div class="t">Tickets totais</div></div>
+      <div class="mini"><div class="n" id="k_confirm">0</div><div class="t">CONFIRMADO</div></div>
+      <div class="mini"><div class="n" id="k_apu">0</div><div class="t">APURAÇÃO</div></div>
+      <div class="mini"><div class="n" id="k_arch">0</div><div class="t">ARQUIVADO</div></div>
     </div>
 
-    <div style="height:10px;"></div>
-    <div id="list" class="feedGrid"></div>
-  </section>
+    <div class="hr"></div>
 
-  <!-- VIEWER (DIREITA) -->
-  <section class="card" id="viewerCard" style="display:none;">
-    <div class="cardTitle">
-      <h2 style="margin:0;">Visualização</h2>
-      <span class="muted">Detalhes + colaboração</span>
-    </div>
+    <div class="split">
+      <!-- esquerda: criação + lista -->
+      <div>
+        <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
 
-    <div id="viewerEmpty" class="muted" style="margin-top:10px;">
-      Selecione uma fofoca no feed/backlog para ver detalhes e colaborar.
-    </div>
+        <div class="inline">
+          <div>
+            <label class="muted">Título</label>
+            <input id="title" placeholder="Ex: Fulano foi visto..." />
+          </div>
+          <div>
+            <label class="muted">Fonte</label>
+            <input id="source" placeholder="Ex: zelador, grupo da família" />
+          </div>
+        </div>
 
-    <div id="viewer" style="display:none; margin-top:10px;">
-      <div class="metaRow" id="vMeta"></div>
-      <h3 id="vTitle" style="margin: 0 0 8px 0;"></h3>
-      <div id="vDetails" class="detailsBox"></div>
+        <div style="height:10px;"></div>
+        <label class="muted">Detalhes</label>
+        <textarea id="details" placeholder="Descreva com seriedade corporativa... (use @usuario pra mencionar)"></textarea>
 
-      <div class="reactRow" id="reactRow"></div>
+        <div style="height:10px;"></div>
+        <div class="inline">
+          <div>
+            <label class="muted">Status</label>
+            <select id="status">
+              <option value="APURACAO">APURAÇÃO</option>
+              <option value="CONFIRMADO">CONFIRMADO</option>
+              <option value="ARQUIVADO">ARQUIVADO</option>
+            </select>
+          </div>
+          <div>
+            <label class="muted">Confiabilidade (0–100)</label>
+            <input id="cred" type="number" min="0" max="100" value="50"/>
+          </div>
+        </div>
 
-      <div style="height:12px;"></div>
-      <div class="metaRow" id="vTags"></div>
+        <div style="height:10px;"></div>
+        <label class="muted">Tags (separadas por vírgula)</label>
+        <input id="tags" placeholder="fonte confiável, ouvi falar, primo do amigo"/>
 
-      <div style="height:12px;"></div>
-      <div class="row">
-        <button id="moveBtn">Mover status</button>
-        <button id="deleteBtn" class="danger">Excluir</button>
+        <div style="height:12px;"></div>
+        <button id="createBtn">Registrar ticket</button>
+        <div id="msg" class="muted" style="margin-top:10px;"></div>
+
+        <div class="hr"></div>
+
+        <h3 style="margin:0 0 10px 0;" id="listTitle">Explorar</h3>
+        <div class="muted" id="listHint" style="margin-bottom:10px;">Clique em “Abrir” para detalhes e colaboração.</div>
+        <div class="list" id="list"></div>
       </div>
-      <div id="permHint" class="muted" style="margin-top:8px;"></div>
 
-      <div style="height:18px;"></div>
-      <div class="cardTitle">
-        <h3 style="margin:0;">Comentários</h3>
-        <span id="cCount" class="muted"></span>
+      <!-- direita: detalhes + comentários -->
+      <div>
+        <h3 style="margin:0 0 10px 0;">Visualização</h3>
+        <div class="muted">Selecione uma fofoca no feed/backlog para detalhes e colaboração.</div>
+
+        <div class="hr"></div>
+
+        <div id="detailEmpty" class="muted">Nenhuma fofoca selecionada.</div>
+
+        <div id="detailWrap" style="display:none;">
+          <div class="row" style="justify-content:space-between;">
+            <div class="meta" id="detailMeta"></div>
+            <button id="closeDetailBtn" class="secondary" style="width:auto;">Fechar</button>
+          </div>
+
+          <h3 id="detailTitle" style="margin:10px 0 6px 0;"></h3>
+          <div class="muted" id="detailBy"></div>
+
+          <div class="preview" id="detailText" style="margin-top:10px; white-space:pre-line;"></div>
+
+          <div class="reactBar" id="detailReacts"></div>
+
+          <div class="hr"></div>
+
+          <div class="inline">
+            <select id="moveStatusSelect">
+              <option value="APURACAO">APURAÇÃO</option>
+              <option value="CONFIRMADO">CONFIRMADO</option>
+              <option value="ARQUIVADO">ARQUIVADO</option>
+            </select>
+            <button id="moveStatusBtn" style="width:auto;">Mover status</button>
+          </div>
+
+          <div class="btnRow">
+            <button id="deleteBtn" class="danger" style="display:none;">Excluir (meu ticket)</button>
+          </div>
+
+          <div class="hr"></div>
+
+          <h4 style="margin:0 0 8px 0;">Comentários</h4>
+          <div class="list" id="comments"></div>
+
+          <div style="height:10px;"></div>
+          <textarea id="commentBody" placeholder="Comente... (use @usuario para mencionar)"></textarea>
+          <div style="height:10px;"></div>
+          <button id="commentBtn">Comentar</button>
+          <div id="commentMsg" class="muted" style="margin-top:8px;"></div>
+        </div>
+
+        <div id="profileWrap" style="display:none;">
+          <h3 style="margin:0 0 10px 0;">Perfil</h3>
+          <div class="item">
+            <div class="meta" id="profileBadges"></div>
+            <div class="hr"></div>
+            <div class="muted" id="profileStats"></div>
+          </div>
+
+          <div style="height:12px;"></div>
+          <h4 style="margin:0 0 10px 0;">Fofocas do usuário</h4>
+          <div class="list" id="profileList"></div>
+        </div>
       </div>
-
-      <div style="height:10px;"></div>
-      <div class="commentBox">
-        <textarea id="cBody" placeholder="Comente… (use @usuario para mencionar)"></textarea>
-        <button id="cSend" style="width:auto;">Enviar</button>
-      </div>
-      <div id="cMsg" class="muted" style="margin-top:8px;"></div>
-
-      <div style="height:10px;"></div>
-      <div class="list" id="comments"></div>
-
-      <div style="height:16px;"></div>
-      <h3 style="margin:0 0 10px 0;">Leaderboard</h3>
-      <div class="list" id="leaderboard"></div>
     </div>
   </section>
 </main>
 
-<!-- Modal: Perfil -->
-<div class="modalBackdrop" id="profileModal">
-  <div class="modal">
-    <div class="modalHeader">
-      <h3 id="pmTitle">Perfil</h3>
-      <button class="modalClose" onclick="closeProfile()">Fechar</button>
-    </div>
-    <div style="height:10px;"></div>
-    <div id="pmBody" class="muted"></div>
-    <div style="height:12px;"></div>
-    <div class="list" id="pmGossips"></div>
-  </div>
-</div>
-
-<!-- Modal: Mover status -->
-<div class="modalBackdrop" id="statusModal">
-  <div class="modal">
-    <div class="modalHeader">
-      <h3>Mover status</h3>
-      <button class="modalClose" onclick="closeStatusModal()">Fechar</button>
-    </div>
-    <div style="height:10px;"></div>
-    <div class="muted">Escolha para qual status deseja mover:</div>
-    <div style="height:10px;"></div>
-    <select id="statusSelect">
-      <option value="APURACAO">APURAÇÃO</option>
-      <option value="CONFIRMADO">CONFIRMADO</option>
-      <option value="ARQUIVADO">ARQUIVADO</option>
-    </select>
-    <div style="height:12px;"></div>
-    <div class="row">
-      <button class="good" onclick="confirmMoveStatus()">Confirmar</button>
-      <button class="ghost" onclick="closeStatusModal()">Cancelar</button>
-    </div>
-  </div>
-</div>
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-let TOKEN = null;
-let MY = null; // /api/me
-let MODE = "login";
-let SELECTED_ID = null;
-let SELECTED_GOSSIP = null;
-let ACTIVE_TAB = "feed"; // feed | backlog
+  // ======= CONFIG =======
+  const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZndWl3dWl3Z2l1aHRvaWZnamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MzkwMjEsImV4cCI6MjA4NjIxNTAyMX0.EIGcLHCx0cYCAdobpAklR2MuKxpI7VQvcMIpYww3GMg";
 
-const REACTS = [
-  {k:"LIKE", e:"👍", t:"Confirmo"},
-  {k:"LOL",  e:"😂", t:"KKK"},
-  {k:"WOW",  e:"😮", t:"Chocado"},
-  {k:"SUS",  e:"🤔", t:"Suspeito"},
-  {k:"FIRE", e:"🔥", t:"Quente"},
-];
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-function authHeader(){ return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {}; }
+  // ======= STATE =======
+  let session = null;
+  let me = null; // profile row
+  let mode = "feed"; // feed | mine | profile
+  let selected = null; // selected gossip card
+  const REACTIONS = ["👍","😂","😮","😡","🔥","⭐"];
 
-async function api(path, opts={}){
-  const res = await fetch(path, { ...opts, headers: { "Content-Type":"application/json", ...(opts.headers||{}), ...authHeader() }});
-  const text = await res.text();
-  let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-  if(!res.ok){
-    let msg = "Erro " + res.status;
-    if (data && data.detail) {
-      if (Array.isArray(data.detail)) msg = data.detail.map(e => `${(e.loc||[]).slice(-1)[0]||"campo"}: ${e.msg}`).join(" | ");
-      else msg = data.detail;
+  // ======= HELPERS =======
+  const $ = (id) => document.getElementById(id);
+
+  function usernameToEmail(u){
+    return (u || "").trim().toLowerCase() + "@fofoca.local";
+  }
+
+  function cleanUsername(u){
+    return (u || "").trim().toLowerCase().replace(/\s+/g,"_");
+  }
+
+  function titleFromCount(n){
+    if(n >= 30) return "Lenda Urbana Oficial 🏆";
+    if(n >= 15) return "Vovózinha do bairro ☕";
+    if(n >= 7) return "Repórter do Portão 📰";
+    if(n >= 3) return "Observador(a) Discreto(a) 👀";
+    return "Aprendiz de Fofoqueiro(a) 🌱";
+  }
+
+  function escapeHtml(s){
+    return (s ?? "").toString()
+      .replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  }
+
+  function withMentions(text){
+    const safe = escapeHtml(text);
+    return safe.replace(/(^|[\s(])@([a-zA-Z0-9_]{2,32})/g, (m, p1, u) => {
+      return `${p1}<span class="mention">@${u}</span>`;
+    });
+  }
+
+  function twoLinePreview(text){
+    const lines = (text || "").split(/\r?\n/);
+    const preview = lines.slice(0, 2).join("\n");
+    return preview.length > 220 ? preview.slice(0, 220) + "…" : preview;
+  }
+
+  function setAuthUI(logged){
+    $("authCard").style.display = logged ? "none" : "block";
+    $("appCard").style.display = logged ? "block" : "none";
+    $("logoutBtn").style.display = logged ? "inline-block" : "none";
+    $("who").textContent = logged
+      ? `Logado como: ${me?.display_name || "Usuário"} (@${me?.username || "?"})`
+      : "Não logado";
+  }
+
+  function setMsg(el, text){
+    $(el).textContent = text || "";
+  }
+
+  function setActiveTab(){
+    $("tabFeed").classList.toggle("active", mode==="feed");
+    $("tabMine").classList.toggle("active", mode==="mine");
+    $("tabProfile").classList.toggle("active", mode==="profile");
+    $("tabFeed").classList.toggle("secondary", mode!=="feed");
+    $("tabMine").classList.toggle("secondary", mode!=="mine");
+    $("tabProfile").classList.toggle("secondary", mode!=="profile");
+  }
+
+  function showDetail(show){
+    $("detailEmpty").style.display = show ? "none" : "block";
+    $("detailWrap").style.display = show ? "block" : "none";
+  }
+
+  function showProfile(show){
+    $("profileWrap").style.display = show ? "block" : "none";
+  }
+
+  function showDetailArea(){
+    // se estiver no perfil, esconde detalhe
+    if(mode === "profile"){
+      showDetail(false);
+      showProfile(true);
+    } else {
+      showProfile(false);
+      if(selected) showDetail(true);
+      else showDetail(false);
     }
-    throw new Error(msg);
-  }
-  return data;
-}
-
-function fmtTs(ts){ return new Date(ts * 1000).toLocaleString(); }
-function escapeHtml(str){ return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-function toPreview(text){ return (text || "").replaceAll("\r","").trim(); }
-
-function setAuthUI(logged){
-  document.getElementById("authCard").style.display = logged ? "none" : "block";
-  document.getElementById("sidebarCard").style.display = logged ? "block" : "none";
-  document.getElementById("exploreCard").style.display = logged ? "block" : "none";
-  document.getElementById("viewerCard").style.display = logged ? "block" : "none";
-  document.getElementById("logoutBtn").style.display = logged ? "inline-block" : "none";
-  document.getElementById("bellBtn").style.display = logged ? "inline-block" : "none";
-}
-
-function setMode(mode){
-  MODE = mode;
-  const isReg = MODE === "register";
-  document.getElementById("authTitle").textContent = isReg ? "Criar conta" : "Acesso";
-  document.getElementById("authHint").innerHTML = isReg
-    ? "Preencha os dados para cadastrar. Depois você faz login normalmente."
-    : "Entre com sua conta. Se ainda não tiver, clique em <b>Criar conta</b>.";
-  document.getElementById("nameField").style.display = isReg ? "block" : "none";
-  document.getElementById("registerButtons").style.display = isReg ? "block" : "none";
-  document.getElementById("authButtons").style.display = isReg ? "none" : "grid";
-  document.getElementById("authMsg").textContent = "";
-}
-
-function renderKpis(d){
-  const k = document.getElementById("kpis");
-  k.innerHTML = "";
-  const mk = (v, l) => `<div class="kpi"><div class="v">${v}</div><div class="l">${l}</div></div>`;
-  k.insertAdjacentHTML("beforeend", mk(d.total, "Tickets totais"));
-  k.insertAdjacentHTML("beforeend", mk(d.by_status.APURACAO, "APURAÇÃO"));
-  k.insertAdjacentHTML("beforeend", mk(d.by_status.CONFIRMADO, "CONFIRMADO"));
-  k.insertAdjacentHTML("beforeend", mk(d.by_status.ARQUIVADO, "ARQUIVADO"));
-  k.insertAdjacentHTML("beforeend", mk(d.avg_credibility.toFixed(1), "Credibilidade média"));
-}
-
-function score(g){
-  const r = g.reactions || {};
-  return (r.LIKE||0)*1 + (r.LOL||0)*2 + (r.WOW||0)*2 + (r.SUS||0)*1 + (r.FIRE||0)*3 + (g.comment_count||0)*2;
-}
-
-function reactLine(g){
-  const r = g.reactions || {};
-  return `
-    <div class="reactLine">
-      <span class="pill small">👍 ${r.LIKE||0}</span>
-      <span class="pill small">😂 ${r.LOL||0}</span>
-      <span class="pill small">😮 ${r.WOW||0}</span>
-      <span class="pill small">🤔 ${r.SUS||0}</span>
-      <span class="pill small">🔥 ${r.FIRE||0}</span>
-    </div>
-  `;
-}
-
-function usernameFromLabel(label){
-  // label pode ser "Nome (@username)" ou "username"
-  const m = String(label).match(/@([a-zA-Z0-9_]{3,20})\)?$/);
-  if(m) return m[1].toLowerCase();
-  return String(label).trim().toLowerCase();
-}
-
-function itemCard(g){
-  const active = (SELECTED_ID === g.id);
-  const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill small">${escapeHtml(t)}</span>`).join(" ");
-  const preview = escapeHtml(toPreview(g.details)).slice(0, 500);
-
-  const uname = usernameFromLabel(g.created_by);
-  const authorHtml = `<span class="authorLink" onclick="openProfile('${uname}')">${escapeHtml(g.created_by)}</span>`;
-
-  return `
-  <div class="feedItem ${active ? "active" : ""}">
-    <div class="feedTop">
-      <div>
-        <div class="metaRow" style="margin-bottom:8px;">
-          <span class="pill small">${g.status}</span>
-          <span class="pill small">Cred ${g.credibility}</span>
-          <span class="pill small">Por: ${authorHtml}</span>
-          ${g.created_by_title ? `<span class="pill small">🏷️ ${escapeHtml(g.created_by_title)}</span>` : ""}
-          <span class="pill small">💬 ${g.comment_count}</span>
-          <span class="pill small">⭐ ${score(g)}</span>
-        </div>
-        <h3 class="feedTitle">${escapeHtml(g.title)}</h3>
-      </div>
-
-      <button class="openBtn" onclick="openGossip(${g.id})">Abrir</button>
-    </div>
-
-    <div class="preview">${preview || "Sem detalhes…"}</div>
-
-    ${reactLine(g)}
-
-    <div class="metaRow">
-      <span class="pill small">${escapeHtml(g.source)}</span>
-      <span class="pill small">${fmtTs(g.updated_at)}</span>
-      ${tags || `<span class="pill small ghost">Sem tags</span>`}
-    </div>
-  </div>`;
-}
-
-function setTab(tab){
-  ACTIVE_TAB = tab;
-  document.getElementById("tabFeed").classList.toggle("active", tab==="feed");
-  document.getElementById("tabBacklog").classList.toggle("active", tab==="backlog");
-  clearViewer();
-  refreshList();
-}
-
-async function refreshList(){
-  const q = document.getElementById("q").value.trim();
-  const st = document.getElementById("statusFilter").value;
-  const sort = document.getElementById("sort").value;
-
-  let data = [];
-  if (ACTIVE_TAB === "feed") {
-    const url = new URL(location.origin + "/api/feed");
-    if(q) url.searchParams.set("q", q);
-    if(st) url.searchParams.set("status_filter", st);
-    url.searchParams.set("sort", sort);
-    data = await api(url.pathname + url.search);
-    if (sort === "hot") data.sort((a,b)=>score(b)-score(a));
-  } else {
-    const url = new URL(location.origin + "/api/backlog");
-    if(q) url.searchParams.set("q", q);
-    if(st) url.searchParams.set("status_filter", st);
-    data = await api(url.pathname + url.search);
   }
 
-  document.getElementById("list").innerHTML =
-    data.map(itemCard).join("") || `<div class="muted">Nada por aqui ainda…</div>`;
-}
-
-async function refreshHeaderAndStats(){
-  const dash = await api("/api/dashboard");
-  renderKpis(dash);
-
-  MY = await api("/api/me");
-  document.getElementById("who").textContent = `Logado como: ${MY.label} • Título: ${MY.title} • Fofocas: ${MY.total_gossips}`;
-
-  const medals = (MY.badges||[]).map(b => `<span class="pill small">${escapeHtml(b)}</span>`).join(" ");
-  document.getElementById("profile").innerHTML = medals
-    ? `Conquistas: ${medals}`
-    : `<span class="muted">Conquistas: nenhuma ainda… poste mais babados 😄</span>`;
-}
-
-function clearViewer(){
-  SELECTED_ID = null;
-  SELECTED_GOSSIP = null;
-  document.getElementById("viewerEmpty").style.display = "block";
-  document.getElementById("viewer").style.display = "none";
-}
-
-async function openGossip(id){
-  SELECTED_ID = id;
-  SELECTED_GOSSIP = await api("/api/gossips/" + id);
-
-  document.getElementById("viewerEmpty").style.display = "none";
-  document.getElementById("viewer").style.display = "block";
-
-  document.getElementById("vTitle").textContent = SELECTED_GOSSIP.title;
-  document.getElementById("vDetails").textContent = SELECTED_GOSSIP.details;
-
-  const uname = usernameFromLabel(SELECTED_GOSSIP.created_by);
-  const authorHtml = `<span class="authorLink" onclick="openProfile('${uname}')">${escapeHtml(SELECTED_GOSSIP.created_by)}</span>`;
-
-  document.getElementById("vMeta").innerHTML = `
-    <span class="pill small">Status: ${SELECTED_GOSSIP.status}</span>
-    <span class="pill small">Cred: ${SELECTED_GOSSIP.credibility}</span>
-    <span class="pill small">Fonte: ${escapeHtml(SELECTED_GOSSIP.source)}</span>
-    <span class="pill small">Por: ${authorHtml}</span>
-    ${SELECTED_GOSSIP.created_by_title ? `<span class="pill small">🏷️ ${escapeHtml(SELECTED_GOSSIP.created_by_title)}</span>` : ""}
-    <span class="pill small">Criado: ${fmtTs(SELECTED_GOSSIP.created_at)}</span>
-    <span class="pill small">Atualizado: ${fmtTs(SELECTED_GOSSIP.updated_at)}</span>
-  `;
-
-  const tags = (SELECTED_GOSSIP.tags||[]).map(t=>`<span class="pill small">${escapeHtml(t)}</span>`).join(" ");
-  document.getElementById("vTags").innerHTML = tags || `<span class="pill small ghost">Sem tags</span>`;
-
-  renderReactions();
-
-  document.getElementById("permHint").textContent =
-    "Obs: só o autor consegue mover/excluir (o servidor bloqueia).";
-
-  document.getElementById("cBody").value = "";
-  document.getElementById("cMsg").textContent = "";
-
-  await loadComments();
-  await loadLeaderboard();
-  await refreshList();
-}
-
-function renderReactions(){
-  const r = SELECTED_GOSSIP.reactions || {};
-  document.getElementById("reactRow").innerHTML = REACTS.map(x => `
-    <button class="reactBtn" onclick="toggleReaction('${x.k}')">${x.e} ${x.t} • ${(r[x.k]||0)}</button>
-  `).join("");
-}
-
-async function toggleReaction(key){
-  if(!SELECTED_ID) return;
-  const out = await api(`/api/gossips/${SELECTED_ID}/reactions/toggle`, {
-    method:"POST",
-    body: JSON.stringify({reaction: key})
-  });
-  SELECTED_GOSSIP.reactions = out.reactions;
-  renderReactions();
-  await refreshList();
-}
-
-async function loadComments(){
-  if(!SELECTED_ID) return;
-  const comments = await api(`/api/gossips/${SELECTED_ID}/comments`);
-  document.getElementById("cCount").textContent = `${comments.length} comentário(s)`;
-
-  document.getElementById("comments").innerHTML = comments.map(c => {
-    const body = highlightMentions(escapeHtml(c.body));
-    return `
-      <div class="comment">
-        <div><span class="who">${escapeHtml(c.author)}</span><span class="when">${fmtTs(c.created_at)}</span></div>
-        <div class="body">${body}</div>
-      </div>`;
-  }).join("") || `<div class="muted">Nenhum comentário ainda… seja o primeiro 😄</div>`;
-}
-
-function highlightMentions(html){
-  return html.replaceAll(/@([a-zA-Z0-9_]{3,20})/g, `<span class="pill small">@$1</span>`);
-}
-
-async function loadLeaderboard(){
-  const lb = await api("/api/leaderboard?limit=10");
-  document.getElementById("leaderboard").innerHTML = lb.map((x, i) => `
-    <div class="feedItem">
-      <div class="metaRow">
-        <span class="pill small">#${i+1}</span>
-        <span class="pill small">${escapeHtml(x.label)}</span>
-        <span class="pill small">${x.total} fofocas</span>
-      </div>
-    </div>
-  `).join("");
-}
-
-async function sendComment(){
-  if(!SELECTED_ID) return;
-  const body = document.getElementById("cBody").value.trim();
-  if(body.length < 1){
-    document.getElementById("cMsg").textContent = "Escreva algo antes de enviar.";
-    return;
-  }
-  await api(`/api/gossips/${SELECTED_ID}/comments`, { method:"POST", body: JSON.stringify({body}) });
-  document.getElementById("cBody").value = "";
-  document.getElementById("cMsg").textContent = "Comentário enviado ✅";
-  await openGossip(SELECTED_ID);
-  await refreshNotifications();
-}
-
-async function create(){
-  const payload = {
-    title: document.getElementById("title").value.trim(),
-    source: document.getElementById("source").value.trim() || "anônimo corporativo",
-    details: document.getElementById("details").value.trim(),
-    credibility: Number(document.getElementById("cred").value || 0),
-    status: document.getElementById("status").value,
-    tags: (document.getElementById("tags").value || "")
-      .split(",").map(s => s.trim()).filter(Boolean),
+  // ======= AUTH MODE (login/register toggle) =======
+  $("goRegisterBtn").onclick = () => {
+    $("authLoginFields").style.display = "none";
+    $("authRegisterFields").style.display = "block";
+    $("loginBtn").disabled = true;
+    $("backToLoginBtn").style.display = "block";
+    setMsg("authMsg", "Modo cadastro: preencha Login, Nome e Senha.");
   };
 
-  if(payload.title.length < 3 || payload.details.length < 3){
-    document.getElementById("msg").textContent = "Preenche título e detalhes, Compliance agradece.";
-    return;
+  $("backToLoginBtn").onclick = () => {
+    $("authLoginFields").style.display = "block";
+    $("authRegisterFields").style.display = "none";
+    $("loginBtn").disabled = false;
+    $("backToLoginBtn").style.display = "none";
+    setMsg("authMsg", "");
+  };
+
+  $("loginBtn").onclick = async () => {
+    try{
+      setMsg("authMsg","");
+      const username = cleanUsername($("u").value);
+      const password = $("p").value;
+
+      if(!username || username.length < 3) throw new Error("Usuário inválido (min 3 chars).");
+      if(!password || password.length < 4) throw new Error("Senha inválida (min 4 chars).");
+
+      const email = usernameToEmail(username);
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+
+      session = data.session;
+      await loadMe();
+      setAuthUI(true);
+      await refreshAll();
+    }catch(e){
+      setMsg("authMsg", e?.message || "Erro ao entrar.");
+    }
+  };
+
+  $("logoutBtn").onclick = async () => {
+    await supabase.auth.signOut();
+    session = null;
+    me = null;
+    selected = null;
+    setAuthUI(false);
+  };
+
+  async function register(){
+    try{
+      setMsg("authMsg","");
+      const username = cleanUsername($("r_u").value);
+      const display_name = ($("r_name").value || "").trim();
+      const password = $("r_p").value;
+
+      if(!username || username.length < 3) throw new Error("Login inválido (min 3 chars).");
+      if(!display_name || display_name.length < 2) throw new Error("Nome inválido (min 2 chars).");
+      if(!password || password.length < 4) throw new Error("Senha inválida (min 4 chars).");
+
+      const email = usernameToEmail(username);
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username, display_name }
+        }
+      });
+      if(error) throw error;
+
+      setMsg("authMsg", "Conta criada! Agora volte pro login e entre.");
+    }catch(e){
+      setMsg("authMsg", e?.message || "Erro ao criar conta.");
+    }
   }
 
-  const created = await api("/api/gossips", { method:"POST", body: JSON.stringify(payload) });
-  document.getElementById("msg").textContent = "Ticket registrado com excelência operacional.";
+  // Botão "Criar conta" no card vira ação de cadastro quando está em modo cadastro
+  $("goRegisterBtn").addEventListener("dblclick", (ev) => ev.preventDefault());
+  $("goRegisterBtn").addEventListener("click", async () => {
+    // Se campos de cadastro estiverem visíveis, isso é cadastro; senão, só alterna modo
+    if($("authRegisterFields").style.display !== "none"){
+      await register();
+    }
+  });
 
-  document.getElementById("title").value = "";
-  document.getElementById("details").value = "";
-  document.getElementById("tags").value = "";
+  // ======= LOAD PROFILE =======
+  async function loadMe(){
+    const { data: { user } } = await supabase.auth.getUser();
+    if(!user) throw new Error("Sessão inválida.");
 
-  await refreshHeaderAndStats();
-  await refreshList();
-  await openGossip(created.id);
-}
+    // profiles é criada por trigger no signup; mas pode demorar um pouco
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, username, display_name, created_at")
+      .eq("id", user.id)
+      .maybeSingle();
 
-async function delSelected(){
-  if(!SELECTED_ID) return;
-  if(!confirm("Excluir essa fofoca?")) return;
-  try{
-    await api("/api/gossips/" + SELECTED_ID, { method:"DELETE" });
-  }catch(e){
-    alert(e.message);
+    if(error) throw error;
+    if(!data){
+      // fallback: tenta criar (caso trigger não tenha rodado)
+      const metaU = user.user_metadata?.username || user.email?.split("@")[0] || "usuario";
+      const metaN = user.user_metadata?.display_name || "Usuário";
+      const ins = await supabase.from("profiles").insert({
+        id: user.id,
+        username: metaU.toLowerCase(),
+        display_name: metaN
+      });
+      if(ins.error) throw ins.error;
+
+      const again = await supabase.from("profiles").select("*").eq("id", user.id).single();
+      if(again.error) throw again.error;
+      me = again.data;
+    } else {
+      me = data;
+    }
+
+    $("profileLine").textContent = `Título: ${titleFromCount(await countMine())} • Fofoqueiro(a): ${me.display_name} (@${me.username})`;
   }
-  clearViewer();
-  await refreshHeaderAndStats();
-  await refreshList();
-}
 
-/* ======= Mover status com select ======= */
-function openStatusModal(){
-  if(!SELECTED_GOSSIP) return;
-  document.getElementById("statusSelect").value = SELECTED_GOSSIP.status || "APURACAO";
-  document.getElementById("statusModal").style.display = "block";
-}
-function closeStatusModal(){
-  document.getElementById("statusModal").style.display = "none";
-}
-async function confirmMoveStatus(){
-  if(!SELECTED_GOSSIP) return;
-  const next = document.getElementById("statusSelect").value;
-  const payload = { ...SELECTED_GOSSIP, status: next, tags: (SELECTED_GOSSIP.tags||[]) };
-  try{
-    const updated = await api("/api/gossips/" + SELECTED_ID, { method:"PATCH", body: JSON.stringify(payload) });
-    SELECTED_GOSSIP = updated;
-    closeStatusModal();
-    await openGossip(SELECTED_ID);
-  }catch(e){
-    alert(e.message);
+  async function countMine(){
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = user?.id;
+    if(!uid) return 0;
+    const { count, error } = await supabase.from("gossips").select("id", { count:"exact", head:true }).eq("created_by", uid);
+    if(error) return 0;
+    return count || 0;
   }
-}
 
-/* ======= Perfil modal ======= */
-function closeProfile(){
-  document.getElementById("profileModal").style.display = "none";
-}
-async function openProfile(username){
-  try{
-    const prof = await api("/api/users/" + encodeURIComponent(username));
-    document.getElementById("pmTitle").textContent = `Perfil — ${prof.label}`;
-    const badges = (prof.badges||[]).map(b=>`<span class="pill small">${escapeHtml(b)}</span>`).join(" ");
-    document.getElementById("pmBody").innerHTML = `
-      <div class="metaRow">
-        <span class="pill small">🏷️ ${escapeHtml(prof.title)}</span>
-        <span class="pill small">📌 Fofocas: ${prof.total_gossips}</span>
-      </div>
-      <div style="height:10px;"></div>
-      ${badges ? `<div class="metaRow">${badges}</div>` : `<div class="muted">Sem conquistas ainda…</div>`}
-      <div style="height:12px;"></div>
-      <div class="muted">Fofocas deste usuário:</div>
+  // ======= DATA =======
+  async function createGossip(){
+    try{
+      setMsg("msg","");
+      const { data: { user } } = await supabase.auth.getUser();
+      const uid = user?.id;
+      if(!uid) throw new Error("Você não está logado.");
+
+      const title = ($("title").value || "").trim();
+      const source = ($("source").value || "").trim() || "anônimo corporativo";
+      const details = ($("details").value || "").trim();
+      const status = $("status").value;
+      const credibility = Math.max(0, Math.min(100, parseInt($("cred").value || "50", 10)));
+      const tags = ($("tags").value || "")
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean);
+
+      if(title.length < 4) throw new Error("Título muito curto.");
+      if(details.length < 6) throw new Error("Detalhes muito curtos.");
+
+      const { error } = await supabase.from("gossips").insert({
+        title, source, details, status, credibility, tags,
+        created_by: uid
+      });
+      if(error) throw error;
+
+      $("title").value = "";
+      $("source").value = "";
+      $("details").value = "";
+      $("tags").value = "";
+      $("cred").value = "50";
+      $("status").value = "APURACAO";
+
+      setMsg("msg", "Ticket registrado com excelência operacional.");
+      await refreshAll(true);
+    }catch(e){
+      setMsg("msg", e?.message || "Erro ao registrar.");
+    }
+  }
+
+  $("createBtn").onclick = createGossip;
+  $("refreshBtn").onclick = () => refreshAll(true);
+
+  $("tabFeed").onclick = async () => {
+    mode="feed"; selected=null;
+    setActiveTab(); await refreshAll(true);
+  };
+  $("tabMine").onclick = async () => {
+    mode="mine"; selected=null;
+    setActiveTab(); await refreshAll(true);
+  };
+  $("tabProfile").onclick = async () => {
+    mode="profile"; selected=null;
+    setActiveTab(); await refreshAll(true);
+  };
+
+  async function fetchCards(){
+    // Usa view gossip_cards (já agrega autor, contagem de comments e reactions)
+    let q = supabase
+      .from("gossip_cards")
+      .select("*")
+      .order("created_at", { ascending:false })
+      .limit(60);
+
+    if(mode === "mine"){
+      const { data: { user } } = await supabase.auth.getUser();
+      q = q.eq("created_by", user.id);
+    }
+
+    const res = await q;
+    if(res.error) throw res.error;
+    return res.data || [];
+  }
+
+  function renderList(cards){
+    const list = $("list");
+    list.innerHTML = "";
+
+    if(mode === "feed"){
+      $("listTitle").textContent = "Explorar";
+      $("listHint").textContent = "Feed do grupo (todas as fofocas). Abra para comentar e reagir.";
+    } else if(mode === "mine"){
+      $("listTitle").textContent = "Meu Backlog";
+      $("listHint").textContent = "Apenas as suas fofocas. Você pode mover status e excluir.";
+    } else {
+      $("listTitle").textContent = "Explorar";
+      $("listHint").textContent = "";
+    }
+
+    if(cards.length === 0){
+      const empty = document.createElement("div");
+      empty.className = "muted";
+      empty.textContent = "Nada por aqui ainda…";
+      list.appendChild(empty);
+      return;
+    }
+
+    for(const g of cards){
+      const el = document.createElement("div");
+      el.className = "item";
+
+      const metaBadges = [];
+      metaBadges.push(`<span class="badge">${escapeHtml(g.status)}</span>`);
+      metaBadges.push(`<span class="badge">Cred ${escapeHtml(g.credibility)}</span>`);
+      metaBadges.push(`<span class="badge">💬 ${escapeHtml(g.comment_count ?? 0)}</span>`);
+
+      const tags = (g.tags || []).slice(0, 3).map(t => `<span class="badge">${escapeHtml(t)}</span>`).join(" ");
+
+      const preview = twoLinePreview(g.details || "");
+
+      el.innerHTML = `
+        <h4>${escapeHtml(g.title)}</h4>
+        <div class="meta">
+          ${metaBadges.join(" ")}
+          <span class="badge">Por: ${escapeHtml(g.author_display_name || "Usuário")} (@${escapeHtml(g.author_username || "?")})</span>
+        </div>
+        <div class="preview">${withMentions(preview)}</div>
+        <div class="meta" style="margin-top:8px;">
+          ${tags}
+        </div>
+        <div class="btnRow">
+          <button class="secondary" data-open="1">Abrir</button>
+        </div>
+      `;
+
+      el.querySelector('[data-open="1"]').onclick = async () => {
+        selected = g;
+        await openDetail(g.id);
+      };
+
+      list.appendChild(el);
+    }
+  }
+
+  async function computeKpis(cards){
+    const total = cards.length;
+    const conf = cards.filter(x => x.status==="CONFIRMADO").length;
+    const apu  = cards.filter(x => x.status==="APURACAO").length;
+    const arc  = cards.filter(x => x.status==="ARQUIVADO").length;
+    $("k_total").textContent = total;
+    $("k_confirm").textContent = conf;
+    $("k_apu").textContent = apu;
+    $("k_arch").textContent = arc;
+  }
+
+  async function openDetail(gossipId){
+    try{
+      setMsg("commentMsg","");
+      showProfile(false);
+
+      // refetch o card selecionado (atualizado)
+      const { data, error } = await supabase
+        .from("gossip_cards")
+        .select("*")
+        .eq("id", gossipId)
+        .single();
+      if(error) throw error;
+      selected = data;
+
+      // render detalhe
+      $("detailTitle").textContent = selected.title;
+      $("detailBy").textContent = `Por: ${selected.author_display_name} (@${selected.author_username}) • Fonte: ${selected.source} • ${new Date(selected.created_at).toLocaleString()}`;
+      $("detailText").innerHTML = withMentions(selected.details);
+
+      $("detailMeta").innerHTML = `
+        <span class="badge">${escapeHtml(selected.status)}</span>
+        <span class="badge">Cred ${escapeHtml(selected.credibility)}</span>
+        <span class="badge">💬 ${escapeHtml(selected.comment_count ?? 0)}</span>
+      `;
+
+      $("moveStatusSelect").value = selected.status || "APURACAO";
+
+      // permissões: excluir só se for do dono
+      const { data: { user } } = await supabase.auth.getUser();
+      const isMine = user?.id && selected.created_by === user.id;
+      $("deleteBtn").style.display = isMine ? "inline-block" : "none";
+
+      // reações
+      await renderReactions();
+
+      // comentários
+      await renderComments();
+
+      showDetail(true);
+      showDetailArea();
+    }catch(e){
+      selected = null;
+      showDetail(false);
+      setMsg("msg", e?.message || "Erro ao abrir.");
+    }
+  }
+
+  $("closeDetailBtn").onclick = () => {
+    selected = null;
+    showDetail(false);
+  };
+
+  async function renderComments(){
+    if(!selected) return;
+    const box = $("comments");
+    box.innerHTML = "";
+
+    const res = await supabase
+      .from("comments")
+      .select("id, body, created_at, user_id, profiles:profiles(username, display_name)")
+      .eq("gossip_id", selected.id)
+      .order("created_at", { ascending:true });
+
+    if(res.error) throw res.error;
+
+    const rows = res.data || [];
+    if(rows.length === 0){
+      const el = document.createElement("div");
+      el.className = "muted";
+      el.textContent = "Sem comentários ainda… seja o primeiro a opinar 👀";
+      box.appendChild(el);
+      return;
+    }
+
+    for(const c of rows){
+      const it = document.createElement("div");
+      it.className = "item";
+      const who = c.profiles?.display_name ? `${c.profiles.display_name} (@${c.profiles.username})` : "Usuário";
+      it.innerHTML = `
+        <div class="muted">${escapeHtml(who)} • ${new Date(c.created_at).toLocaleString()}</div>
+        <div style="margin-top:6px; white-space:pre-line;">${withMentions(c.body)}</div>
+      `;
+      box.appendChild(it);
+    }
+  }
+
+  $("commentBtn").onclick = async () => {
+    try{
+      setMsg("commentMsg","");
+      if(!selected) throw new Error("Nenhuma fofoca selecionada.");
+      const body = ($("commentBody").value || "").trim();
+      if(body.length < 2) throw new Error("Comentário muito curto.");
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if(!user?.id) throw new Error("Você não está logado.");
+
+      const ins = await supabase.from("comments").insert({
+        gossip_id: selected.id,
+        user_id: user.id,
+        body
+      });
+      if(ins.error) throw ins.error;
+
+      $("commentBody").value = "";
+      setMsg("commentMsg", "Comentário enviado.");
+
+      await openDetail(selected.id);
+      await refreshAll(false); // atualiza contagem no feed
+    }catch(e){
+      setMsg("commentMsg", e?.message || "Erro ao comentar.");
+    }
+  };
+
+  async function renderReactions(){
+    if(!selected) return;
+    const bar = $("detailReacts");
+    bar.innerHTML = "";
+
+    // contar agregadas na view
+    const agg = selected.reactions || {};
+
+    // saber quais eu já reagi (para marcar botão)
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = user?.id;
+
+    let mine = [];
+    if(uid){
+      const r = await supabase
+        .from("reactions")
+        .select("reaction")
+        .eq("gossip_id", selected.id)
+        .eq("user_id", uid);
+      if(!r.error) mine = (r.data || []).map(x => x.reaction);
+    }
+
+    for(const r of REACTIONS){
+      const count = agg[r] || 0;
+      const btn = document.createElement("button");
+      btn.className = "reactBtn" + (mine.includes(r) ? " on" : "");
+      btn.textContent = `${r} ${count}`;
+      btn.onclick = async () => {
+        await toggleReaction(r);
+      };
+      bar.appendChild(btn);
+    }
+  }
+
+  async function toggleReaction(reaction){
+    if(!selected) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    const uid = user?.id;
+    if(!uid) return;
+
+    // verifica se existe
+    const ex = await supabase
+      .from("reactions")
+      .select("id")
+      .eq("gossip_id", selected.id)
+      .eq("user_id", uid)
+      .eq("reaction", reaction)
+      .maybeSingle();
+
+    if(ex.error && ex.error.code !== "PGRST116"){ /* ignore not found */ }
+
+    if(ex.data?.id){
+      const del = await supabase.from("reactions").delete().eq("id", ex.data.id);
+      if(del.error) throw del.error;
+    } else {
+      const ins = await supabase.from("reactions").insert({
+        gossip_id: selected.id,
+        user_id: uid,
+        reaction
+      });
+      if(ins.error) throw ins.error;
+    }
+
+    await openDetail(selected.id);
+    await refreshAll(false);
+  }
+
+  $("moveStatusBtn").onclick = async () => {
+    try{
+      if(!selected) throw new Error("Nenhuma fofoca selecionada.");
+      const next = $("moveStatusSelect").value;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const isMine = user?.id && selected.created_by === user.id;
+      if(!isMine) throw new Error("Você só pode mover status das suas fofocas.");
+
+      const upd = await supabase
+        .from("gossips")
+        .update({ status: next })
+        .eq("id", selected.id);
+
+      if(upd.error) throw upd.error;
+
+      await openDetail(selected.id);
+      await refreshAll(false);
+    }catch(e){
+      setMsg("commentMsg", e?.message || "Erro ao mover status.");
+    }
+  };
+
+  $("deleteBtn").onclick = async () => {
+    try{
+      if(!selected) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      const isMine = user?.id && selected.created_by === user.id;
+      if(!isMine) throw new Error("Você só pode excluir suas fofocas.");
+
+      if(!confirm("Tem certeza que deseja excluir este ticket?")) return;
+
+      const del = await supabase.from("gossips").delete().eq("id", selected.id);
+      if(del.error) throw del.error;
+
+      selected = null;
+      showDetail(false);
+      await refreshAll(true);
+    }catch(e){
+      setMsg("commentMsg", e?.message || "Erro ao excluir.");
+    }
+  };
+
+  // ======= PROFILE TAB =======
+  async function renderProfile(){
+    showProfile(true);
+    showDetail(false);
+
+    const mineCount = await countMine();
+    const title = titleFromCount(mineCount);
+
+    $("profileBadges").innerHTML = `
+      <span class="badge">👤 ${escapeHtml(me.display_name)} (@${escapeHtml(me.username)})</span>
+      <span class="badge">🏷️ ${escapeHtml(title)}</span>
+      <span class="badge">🗣️ Fofocas: ${escapeHtml(mineCount)}</span>
     `;
 
-    const gs = await api("/api/users/" + encodeURIComponent(username) + "/gossips?limit=50");
-    document.getElementById("pmGossips").innerHTML = gs.map(g => `
-      <div class="feedItem">
-        <div class="metaRow">
-          <span class="pill small">${g.status}</span>
-          <span class="pill small">⭐ ${score(g)}</span>
-          <span class="pill small">💬 ${g.comment_count}</span>
-          <span class="pill small">${fmtTs(g.created_at)}</span>
+    $("profileStats").textContent = "Dica: o título muda automaticamente conforme você posta mais fofocas.";
+
+    // lista minhas fofocas
+    const res = await supabase
+      .from("gossip_cards")
+      .select("*")
+      .eq("created_by", me.id)
+      .order("created_at", { ascending:false })
+      .limit(50);
+
+    if(res.error) throw res.error;
+
+    const list = $("profileList");
+    list.innerHTML = "";
+    const rows = res.data || [];
+    if(rows.length === 0){
+      const el = document.createElement("div");
+      el.className = "muted";
+      el.textContent = "Você ainda não postou nenhuma fofoca.";
+      list.appendChild(el);
+      return;
+    }
+
+    for(const g of rows){
+      const el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = `
+        <h4>${escapeHtml(g.title)}</h4>
+        <div class="meta">
+          <span class="badge">${escapeHtml(g.status)}</span>
+          <span class="badge">Cred ${escapeHtml(g.credibility)}</span>
+          <span class="badge">💬 ${escapeHtml(g.comment_count ?? 0)}</span>
         </div>
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;">
-          <div style="font-weight:800;">${escapeHtml(g.title)}</div>
-          <button class="openBtn" onclick="openGossip(${g.id}); closeProfile();">Abrir</button>
+        <div class="preview">${withMentions(twoLinePreview(g.details))}</div>
+        <div class="btnRow">
+          <button class="secondary">Abrir</button>
         </div>
-        <div class="preview">${escapeHtml(toPreview(g.details))}</div>
-      </div>
-    `).join("") || `<div class="muted">Nenhuma fofoca ainda.</div>`;
-
-    document.getElementById("profileModal").style.display = "block";
-  }catch(e){
-    alert(e.message);
+      `;
+      el.querySelector("button").onclick = async () => {
+        mode = "mine";
+        setActiveTab();
+        selected = g;
+        await refreshAll(false);
+        await openDetail(g.id);
+      };
+      list.appendChild(el);
+    }
   }
-}
 
-/* ===== Notificações ===== */
-async function refreshNotifications(){
-  const c = await api("/api/notifications/unread_count");
-  const badge = document.getElementById("bellBadge");
-  if(c.count > 0){
-    badge.style.display = "inline-block";
-    badge.textContent = String(c.count);
-  }else{
-    badge.style.display = "none";
+  // ======= REFRESH =======
+  async function refreshAll(scrollTop){
+    try{
+      setActiveTab();
+      showDetailArea();
+
+      if(mode === "profile"){
+        await renderProfile();
+        return;
+      }
+
+      const cards = await fetchCards();
+      await computeKpis(cards);
+      renderList(cards);
+
+      if(scrollTop) window.scrollTo({ top: 0, behavior: "smooth" });
+
+      // se tiver selecionado, reabre para atualizar estado
+      if(selected?.id){
+        await openDetail(selected.id);
+      }
+    }catch(e){
+      setMsg("msg", e?.message || "Erro ao carregar.");
+    }
   }
-}
 
-async function toggleNotifPanel(){
-  const panel = document.getElementById("notifPanel");
-  const isOpen = panel.style.display === "block";
-  panel.style.display = isOpen ? "none" : "block";
-  if(!isOpen){
-    const notifs = await api("/api/notifications?limit=25");
-    document.getElementById("notifs").innerHTML = notifs.map(n => `
-      <div class="notifItem ${n.read_at ? "" : "unread"}">
-        <div class="metaRow">
-          <span class="pill small">${escapeHtml(n.type)}</span>
-          <span class="pill small">${fmtTs(n.created_at)}</span>
-        </div>
-        <div style="margin-top:6px;">${escapeHtml(n.message)}</div>
-        <div class="inline" style="margin-top:10px;">
-          ${n.entity==="gossip" && n.entity_id ? `<button onclick="openFromNotif(${n.id}, ${n.entity_id})">Abrir</button>` : ""}
-          ${n.read_at ? "" : `<button class="ghost" onclick="markNotifRead(${n.id})">Marcar lida</button>`}
-        </div>
-      </div>
-    `).join("") || `<div class="muted">Sem notificações.</div>`;
-  }
-}
+  // ======= BOOT =======
+  (async function boot(){
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
 
-async function openFromNotif(nid, gid){
-  await markNotifRead(nid);
-  await openGossip(gid);
-  await refreshNotifications();
-}
+    if(session){
+      try{
+        await loadMe();
+        setAuthUI(true);
+        await refreshAll(false);
+      }catch(err){
+        // sessão inválida, força logout
+        await supabase.auth.signOut();
+        session = null;
+        me = null;
+        setAuthUI(false);
+      }
+    } else {
+      setAuthUI(false);
+    }
 
-async function markNotifRead(nid){
-  await api("/api/notifications/" + nid + "/read", { method:"POST" });
-  await refreshNotifications();
-  if(document.getElementById("notifPanel").style.display === "block"){
-    await toggleNotifPanel();
-    await toggleNotifPanel();
-  }
-}
-
-async function fullRefresh(){
-  await refreshHeaderAndStats();
-  await refreshNotifications();
-  await refreshList();
-}
-
-/* ===== Auth ===== */
-document.getElementById("goRegisterBtn").onclick = () => setMode("register");
-document.getElementById("backToLoginBtn").onclick = () => setMode("login");
-
-document.getElementById("registerBtn").onclick = async () => {
-  try{
-    const name = document.getElementById("n").value.trim();
-    const username = document.getElementById("u").value.trim();
-    const password = document.getElementById("p").value;
-
-    if(name.length < 2) return (document.getElementById("authMsg").textContent = "Nome mínimo 2 caracteres.");
-    if(username.length < 3) return (document.getElementById("authMsg").textContent = "Usuário mínimo 3 caracteres.");
-    if(password.length < 4) return (document.getElementById("authMsg").textContent = "Senha mínima 4 caracteres.");
-
-    await api("/api/register", { method:"POST", body: JSON.stringify({name, username, password}) });
-    document.getElementById("authMsg").textContent = `Conta criada, ${name}! Volte e faça login.`;
-  }catch(e){
-    document.getElementById("authMsg").textContent = e.message;
-  }
-};
-
-document.getElementById("loginBtn").onclick = async () => {
-  try{
-    const username = document.getElementById("u").value.trim();
-    const password = document.getElementById("p").value;
-
-    if(!username || !password) return (document.getElementById("authMsg").textContent = "Preencha usuário e senha.");
-
-    const out = await api("/api/login", { method:"POST", body: JSON.stringify({username, password}) });
-    TOKEN = out.token;
-
-    setAuthUI(true);
-    await fullRefresh();
-    clearViewer();
-  }catch(e){
-    document.getElementById("authMsg").textContent = e.message;
-  }
-};
-
-document.getElementById("logoutBtn").onclick = async () => {
-  try{ await api("/api/logout", { method:"POST" }); }catch(e){}
-  TOKEN = null; MY = null;
-  setAuthUI(false);
-  setMode("login");
-  clearViewer();
-};
-
-document.getElementById("createBtn").onclick = create;
-document.getElementById("refreshBtn").onclick = fullRefresh;
-document.getElementById("applyBtn").onclick = refreshList;
-document.getElementById("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refreshList(); });
-document.getElementById("statusFilter").addEventListener("change", refreshList);
-document.getElementById("sort").addEventListener("change", refreshList);
-
-document.getElementById("tabFeed").onclick = ()=>setTab("feed");
-document.getElementById("tabBacklog").onclick = ()=>setTab("backlog");
-
-document.getElementById("deleteBtn").onclick = delSelected;
-document.getElementById("moveBtn").onclick = openStatusModal;
-document.getElementById("cSend").onclick = sendComment;
-
-document.getElementById("bellBtn").onclick = toggleNotifPanel;
-
-setMode("login");
-clearViewer();
+    // atualiza UI quando sessão muda (login/logout em outra aba etc)
+    supabase.auth.onAuthStateChange(async (_event, _session) => {
+      session = _session;
+      if(session){
+        await loadMe();
+        setAuthUI(true);
+        await refreshAll(false);
+      } else {
+        me = null;
+        selected = null;
+        setAuthUI(false);
+      }
+    });
+  })();
 </script>
 </body>
 </html>
