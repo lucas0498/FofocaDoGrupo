@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Fofoca Do Grupo — Enterprise Gossip Management</title>
+  <title>GossipCRM — Enterprise Fofoca Management</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     body { margin: 0; background: #0b0f14; color: #e6edf3; }
@@ -19,6 +19,7 @@
     textarea { min-height: 90px; resize: vertical; }
     button { cursor: pointer; background: #1b3a57; border-color: #2b4a66; font-weight: 700; }
     button:hover { filter: brightness(1.08); }
+    button:disabled { opacity: .45; cursor:not-allowed; filter:none; }
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .muted { opacity: .75; font-size: 12px; }
     .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; border: 1px solid #2a3a52; font-size: 12px; opacity:.9; }
@@ -34,16 +35,19 @@
     .danger { background:#4a1d1d; border-color:#6a2b2b; }
     .inline { display:flex; gap:8px; }
     .inline button { width:auto; padding: 10px 12px; }
+    .good { background:#153a2a; border-color:#1f5b40; }
+    .ghost { background: transparent; border-color: #2a3a52; }
+    .field { margin-top: 10px; }
     @media (max-width: 980px){ main { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 <header>
   <div>
-    <div class="brand">Fofoca do Grupo</div>
-    <div class="tagline">Enterprise Gossip Management • Observability • Compliance • Governança de Tias</div>
+    <div class="brand">GossipCRM</div>
+    <div class="tagline">Enterprise Fofoca Management • Observability • Compliance • Governança de Tias</div>
   </div>
-  <div style="margin-left:auto; display:flex; gap:10px; align-items:center;">
+  <div style="margin-left:auto; display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
     <span id="who" class="muted"></span>
     <button id="logoutBtn" style="width:auto; display:none;">Sair</button>
   </div>
@@ -51,14 +55,34 @@
 
 <main>
   <section class="card" id="authCard">
-    <h2 style="margin-top:0;">Acesso</h2>
-    <div class="muted">Conta padrão: <b>admin</b> / <b>admin</b></div>
-    <div style="height:10px"></div>
-    <input id="u" placeholder="Usuário" value="admin"/>
-    <div style="height:10px"></div>
-    <input id="p" placeholder="Senha" type="password" value="admin"/>
-    <div style="height:10px"></div>
-    <button id="loginBtn">Entrar</button>
+    <h2 id="authTitle" style="margin-top:0;">Acesso</h2>
+    <div id="authHint" class="muted">
+      Entre com sua conta. Se ainda não tiver, clique em <b>Criar conta</b>.
+    </div>
+
+    <div class="field" id="nameField" style="display:none;">
+      <input id="n" placeholder="Nome (ex: Dona Cida do 302)"/>
+    </div>
+
+    <div class="field">
+      <input id="u" placeholder="Usuário (ex: fofoqueiro123)" value=""/>
+    </div>
+
+    <div class="field">
+      <input id="p" placeholder="Senha" type="password" value=""/>
+    </div>
+
+    <div class="field row" id="authButtons">
+      <button id="loginBtn">Entrar</button>
+      <button id="goRegisterBtn" class="good">Criar conta</button>
+    </div>
+
+    <div class="field" id="registerButtons" style="display:none;">
+      <button id="registerBtn" class="good">Confirmar cadastro</button>
+      <div style="height:10px;"></div>
+      <button id="backToLoginBtn" class="ghost">Voltar para o login</button>
+    </div>
+
     <div id="authMsg" class="muted" style="margin-top:10px;"></div>
   </section>
 
@@ -81,6 +105,9 @@
     <div style="height:10px;"></div>
     <div class="kpis" id="kpis"></div>
 
+    <div style="height:10px;"></div>
+    <div id="profile" class="muted"></div>
+
     <div style="height:14px;"></div>
     <h3 style="margin:0 0 10px 0;">Nova ocorrência</h3>
 
@@ -91,9 +118,10 @@
       </div>
       <div>
         <label class="muted">Fonte</label>
-        <input id="source" placeholder="Ex: 'porteiro', 'grupo da família'"/>
+        <input id="source" placeholder="Ex: porteiro, grupo da família"/>
       </div>
     </div>
+
     <div style="height:10px;"></div>
     <label class="muted">Detalhes</label>
     <textarea id="details" placeholder="Descreva com seriedade corporativa..."></textarea>
@@ -130,12 +158,17 @@
     <div style="height:16px;"></div>
     <h3 style="margin:0 0 10px 0;">Audit Log</h3>
     <div class="list" id="audit"></div>
+
+    <div style="height:16px;"></div>
+    <h3 style="margin:0 0 10px 0;">Leaderboard</h3>
+    <div class="list" id="leaderboard"></div>
   </section>
 </main>
 
 <script>
 let TOKEN = null;
 let USERNAME = null;
+let MODE = "login"; // "login" | "register"
 
 function authHeader(){
   return TOKEN ? { "Authorization": "Bearer " + TOKEN } : {};
@@ -150,11 +183,22 @@ async function api(path, opts={}){
       ...authHeader()
     }
   });
+
   const text = await res.text();
   let data = null;
   try { data = text ? JSON.parse(text) : null; } catch { data = text; }
+
   if(!res.ok){
-    const msg = (data && data.detail) ? data.detail : ("Erro " + res.status);
+    let msg = "Erro " + res.status;
+    if (data && data.detail) {
+      if (Array.isArray(data.detail)) {
+        msg = data.detail
+          .map(e => `${(e.loc || []).slice(-1)[0] || "campo"}: ${e.msg}`)
+          .join(" | ");
+      } else {
+        msg = data.detail;
+      }
+    }
     throw new Error(msg);
   }
   return data;
@@ -165,6 +209,19 @@ function setAuthUI(logged){
   document.getElementById("appCard").style.display = logged ? "block" : "none";
   document.getElementById("logoutBtn").style.display = logged ? "inline-block" : "none";
   document.getElementById("who").textContent = logged ? ("Logado como: " + USERNAME) : "";
+}
+
+function setMode(mode){
+  MODE = mode;
+  const isReg = MODE === "register";
+  document.getElementById("authTitle").textContent = isReg ? "Criar conta" : "Acesso";
+  document.getElementById("authHint").innerHTML = isReg
+    ? "Preencha os dados para cadastrar. Depois você faz login normalmente."
+    : "Entre com sua conta. Se ainda não tiver, clique em <b>Criar conta</b>.";
+  document.getElementById("nameField").style.display = isReg ? "block" : "none";
+  document.getElementById("registerButtons").style.display = isReg ? "block" : "none";
+  document.getElementById("authButtons").style.display = isReg ? "none" : "grid";
+  document.getElementById("authMsg").textContent = "";
 }
 
 function fmtTs(ts){
@@ -200,7 +257,7 @@ function itemHTML(g){
     <div style="margin-top:10px;">${tags}</div>
     <div class="inline" style="margin-top:12px;">
       <button onclick="quickMove(${g.id}, '${g.status}')">Mover status</button>
-      <button class="danger" onclick="del(${g.id})">Excluir</button>
+      <button class="danger" onclick="delGossip(${g.id})">Excluir</button>
     </div>
   </div>`;
 }
@@ -208,19 +265,27 @@ function itemHTML(g){
 async function refresh(){
   const q = document.getElementById("q").value.trim();
   const st = document.getElementById("statusFilter").value;
+
   const dash = await api("/api/dashboard");
   renderKpis(dash);
+
+  const me = await api("/api/me");
+  USERNAME = me.label;
+  document.getElementById("who").textContent = `Logado como: ${me.label} • Título: ${me.title} • Fofocas: ${me.total_gossips}`;
+
+  const medals = (me.badges || []).map(b => `<span class="pill">${b}</span>`).join(" ");
+  document.getElementById("profile").innerHTML = medals
+    ? `Conquistas: ${medals}`
+    : `<span class="muted">Conquistas: nenhuma ainda… poste mais babados 😄</span>`;
 
   const url = new URL(location.origin + "/api/gossips");
   if(q) url.searchParams.set("q", q);
   if(st) url.searchParams.set("status_filter", st);
   const gossips = await api(url.pathname + url.search);
-  const list = document.getElementById("list");
-  list.innerHTML = gossips.map(itemHTML).join("");
+  document.getElementById("list").innerHTML = gossips.map(itemHTML).join("");
 
   const audit = await api("/api/audit?limit=20");
-  const a = document.getElementById("audit");
-  a.innerHTML = audit.map(x => `
+  document.getElementById("audit").innerHTML = audit.map(x => `
     <div class="item">
       <div class="meta">
         <span class="pill">${fmtTs(x.ts)}</span>
@@ -229,6 +294,17 @@ async function refresh(){
         <span class="pill">${x.entity}#${x.entity_id ?? "-"}</span>
       </div>
       <div class="muted">${x.meta}</div>
+    </div>
+  `).join("");
+
+  const lb = await api("/api/leaderboard?limit=10");
+  document.getElementById("leaderboard").innerHTML = lb.map((x, i) => `
+    <div class="item">
+      <div class="meta">
+        <span class="pill">#${i+1}</span>
+        <span class="pill">${x.label}</span>
+        <span class="pill">${x.total} fofocas</span>
+      </div>
     </div>
   `).join("");
 }
@@ -243,10 +319,12 @@ async function create(){
     tags: (document.getElementById("tags").value || "")
       .split(",").map(s => s.trim()).filter(Boolean),
   };
+
   if(payload.title.length < 3 || payload.details.length < 3){
     document.getElementById("msg").textContent = "Preenche título e detalhes, Compliance agradece.";
     return;
   }
+
   await api("/api/gossips", { method:"POST", body: JSON.stringify(payload) });
   document.getElementById("msg").textContent = "Ticket registrado com excelência operacional.";
   document.getElementById("title").value = "";
@@ -255,7 +333,7 @@ async function create(){
   await refresh();
 }
 
-async function del(id){
+async function delGossip(id){
   if(!confirm("Excluir esse ticket de fofoca? Isso vai contra a governança de memória coletiva.")) return;
   await api("/api/gossips/" + id, { method:"DELETE" });
   await refresh();
@@ -266,7 +344,6 @@ async function quickMove(id, current){
   const i = order.indexOf(current);
   const next = order[(i+1) % order.length];
 
-  // Pega lista atual e encontra item
   const all = await api("/api/gossips");
   const g = all.find(x => x.id === id);
   if(!g) return;
@@ -276,12 +353,51 @@ async function quickMove(id, current){
   await refresh();
 }
 
+// ===== Auth UX =====
+document.getElementById("goRegisterBtn").onclick = () => setMode("register");
+document.getElementById("backToLoginBtn").onclick = () => setMode("login");
+
+// Cadastro (agora salva nome no backend)
+document.getElementById("registerBtn").onclick = async () => {
+  try{
+    const name = document.getElementById("n").value.trim();
+    const username = document.getElementById("u").value.trim();
+    const password = document.getElementById("p").value;
+
+    if (name.length < 2) {
+      document.getElementById("authMsg").textContent = "Nome precisa ter pelo menos 2 caracteres.";
+      return;
+    }
+    if (username.length < 3) {
+      document.getElementById("authMsg").textContent = "Usuário precisa ter pelo menos 3 caracteres.";
+      return;
+    }
+    if (password.length < 4) {
+      document.getElementById("authMsg").textContent = "Senha precisa ter pelo menos 4 caracteres.";
+      return;
+    }
+
+    await api("/api/register", { method:"POST", body: JSON.stringify({name, username, password}) });
+    document.getElementById("authMsg").textContent = `Conta criada, ${name}! Agora volte e faça login.`;
+  }catch(e){
+    document.getElementById("authMsg").textContent = e.message;
+  }
+};
+
+// Login
 document.getElementById("loginBtn").onclick = async () => {
   try{
     const username = document.getElementById("u").value.trim();
     const password = document.getElementById("p").value;
+
+    if (username.length < 1 || password.length < 1) {
+      document.getElementById("authMsg").textContent = "Preencha usuário e senha.";
+      return;
+    }
+
     const out = await api("/api/login", { method:"POST", body: JSON.stringify({username, password}) });
-    TOKEN = out.token; USERNAME = out.username;
+    TOKEN = out.token;
+    USERNAME = out.display_name ? `${out.display_name} (@${out.username})` : out.username;
     setAuthUI(true);
     await refresh();
   }catch(e){
@@ -293,12 +409,16 @@ document.getElementById("logoutBtn").onclick = async () => {
   try{ await api("/api/logout", { method:"POST" }); }catch(e){}
   TOKEN = null; USERNAME = null;
   setAuthUI(false);
+  setMode("login");
 };
 
 document.getElementById("createBtn").onclick = create;
 document.getElementById("refreshBtn").onclick = refresh;
 document.getElementById("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refresh(); });
 document.getElementById("statusFilter").addEventListener("change", refresh);
+
+// Start in login mode
+setMode("login");
 </script>
 </body>
 </html>
