@@ -11,14 +11,8 @@
     .brand { font-weight: 800; letter-spacing: 0.5px; }
     .tagline { opacity: .75; font-size: 12px; }
 
-    /* Wrapper central */
     .wrap { max-width: 1600px; margin: 0 auto; }
 
-    /* ===== Desktop layout 3 colunas =====
-       1) Sidebar (fixa)
-       2) Feed/Explorar (centro e mais largo)
-       3) Viewer (direita)
-    */
     main.wrap {
       display: grid;
       grid-template-columns: minmax(460px, 560px) minmax(560px, 760px) minmax(420px, 560px);
@@ -39,7 +33,22 @@
     button:disabled { opacity: .45; cursor:not-allowed; filter:none; }
     .row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .muted { opacity: .75; font-size: 12px; }
-    .pill { display:inline-block; padding: 3px 8px; border-radius: 999px; border: 1px solid #2a3a52; font-size: 12px; opacity:.9; }
+
+    /* Badges compactas */
+    .pill {
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid #2a3a52;
+      font-size: 11px;
+      line-height: 1.4;
+      opacity:.92;
+      white-space: nowrap;
+    }
+    .pill.small { padding: 2px 7px; font-size: 11px; opacity: .9; }
+    .pill.ghost { background: transparent; }
     .danger { background:#4a1d1d; border-color:#6a2b2b; }
     .good { background:#153a2a; border-color:#1f5b40; }
     .ghost { background: transparent; border-color: #2a3a52; }
@@ -49,13 +58,7 @@
     .kpi .v { font-size: 18px; font-weight: 800; }
     .kpi .l { font-size: 12px; opacity:.75; }
 
-    /* Lists */
     .list { display:flex; flex-direction: column; gap: 10px; }
-    .item { border: 1px solid #203044; background:#0b111a; border-radius: 14px; padding: 12px; }
-    .item:hover { border-color:#2d425c; }
-    .item h3 { margin: 0 0 6px 0; font-size: 16px; }
-    .meta { display:flex; gap:8px; flex-wrap:wrap; margin-bottom: 8px; }
-    .clickable { cursor:pointer; }
 
     /* Feed cards: no desktop, vira grade */
     .feedGrid {
@@ -66,6 +69,55 @@
     @media (min-width: 1200px){
       .feedGrid { grid-template-columns: 1fr 1fr; }
     }
+
+    /* Card do feed mais “produtinho” */
+    .feedItem{
+      border: 1px solid #203044;
+      background:#0b111a;
+      border-radius: 14px;
+      padding: 12px;
+      display:flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .feedItem:hover{ border-color:#2d425c; }
+    .feedTop{
+      display:flex;
+      align-items:flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .feedTitle{
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .openBtn{
+      width:auto;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background:#153a2a;
+      border-color:#1f5b40;
+      white-space: nowrap;
+    }
+
+    .metaRow{ display:flex; gap: 8px; flex-wrap:wrap; }
+
+    /* Preview 2 linhas */
+    .preview{
+      opacity:.9;
+      font-size: 13px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    /* Linha compacta de reações */
+    .reactLine{ display:flex; gap: 8px; flex-wrap:wrap; }
+    .reactLine .pill{ opacity:.9; }
 
     /* Viewer */
     .detailsBox { white-space:pre-wrap; line-height:1.4; }
@@ -80,30 +132,23 @@
     .reactBtn { width:auto; padding: 8px 10px; background: transparent; border-color:#2a3a52; }
     .reactBtn:hover { filter:none; border-color:#3a5677; }
 
-    /* Header right */
     .topRight { display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end; margin-left:auto; }
     .bell { width:auto; padding: 10px 12px; background: transparent; border-color:#2a3a52; position:relative; }
     .badge { position:absolute; top:-6px; right:-6px; background:#153a2a; border:1px solid #1f5b40; padding:2px 6px; border-radius:999px; font-size:12px; }
 
-    /* Notifs */
     .notifPanel { display:none; margin-top:10px; }
     .notifItem { border:1px solid #203044; background:#0b111a; border-radius:14px; padding:10px; }
     .notifItem.unread { border-color:#3a5677; }
     .inline { display:flex; gap:10px; }
     .inline button { width:auto; }
 
-    /* Tabs */
     .tabs { display:flex; gap:10px; flex-wrap:wrap; }
     .tabbtn { width:auto; padding: 10px 12px; }
     .tabbtn.active { background:#153a2a; border-color:#1f5b40; }
 
-    /* ===== Responsivo =====
-       - Tablet: 2 colunas (sidebar + conteúdo)
-       - Mobile: 1 coluna
-    */
     @media (max-width: 1300px){
       main.wrap { grid-template-columns: minmax(460px, 560px) 1fr; }
-      #viewerCard { grid-column: 1 / -1; } /* viewer vai pra baixo */
+      #viewerCard { grid-column: 1 / -1; }
     }
     @media (max-width: 980px){
       main.wrap { grid-template-columns: 1fr; }
@@ -184,7 +229,6 @@
       <input id="q" placeholder="Pesquisar..." />
       <select id="statusFilter">
         <option value="">Todas</option>
-        <option value="LEAD">LEAD</option>
         <option value="APURACAO">APURAÇÃO</option>
         <option value="CONFIRMADO">CONFIRMADO</option>
         <option value="ARQUIVADO">ARQUIVADO</option>
@@ -277,14 +321,14 @@
     </div>
 
     <div id="viewer" style="display:none; margin-top:10px;">
-      <div class="meta" id="vMeta"></div>
+      <div class="metaRow" id="vMeta"></div>
       <h3 id="vTitle" style="margin: 0 0 8px 0;"></h3>
       <div id="vDetails" class="detailsBox"></div>
 
       <div class="reactRow" id="reactRow"></div>
 
       <div style="height:12px;"></div>
-      <div class="meta" id="vTags"></div>
+      <div class="metaRow" id="vTags"></div>
 
       <div style="height:12px;"></div>
       <div class="row">
@@ -352,6 +396,10 @@ async function api(path, opts={}){
 
 function fmtTs(ts){ return new Date(ts * 1000).toLocaleString(); }
 function escapeHtml(str){ return String(str).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+function toPreview(text){
+  const s = (text || "").replaceAll("\r","").trim();
+  return s;
+}
 
 function setAuthUI(logged){
   document.getElementById("authCard").style.display = logged ? "none" : "block";
@@ -392,30 +440,50 @@ function score(g){
   return (r.LIKE||0)*1 + (r.LOL||0)*2 + (r.WOW||0)*2 + (r.SUS||0)*1 + (r.FIRE||0)*3 + (g.comment_count||0)*2;
 }
 
+function reactLine(g){
+  const r = g.reactions || {};
+  return `
+    <div class="reactLine">
+      <span class="pill small">👍 ${r.LIKE||0}</span>
+      <span class="pill small">😂 ${r.LOL||0}</span>
+      <span class="pill small">😮 ${r.WOW||0}</span>
+      <span class="pill small">🤔 ${r.SUS||0}</span>
+      <span class="pill small">🔥 ${r.FIRE||0}</span>
+    </div>
+  `;
+}
+
 function itemCard(g){
   const active = (SELECTED_ID === g.id) ? "style='border-color:#3a5677;'" : "";
-  const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join(" ");
-  const r = g.reactions || {};
-  const reactSummary =
-    `<span class="pill">👍 ${r.LIKE||0}</span>
-     <span class="pill">😂 ${r.LOL||0}</span>
-     <span class="pill">😮 ${r.WOW||0}</span>
-     <span class="pill">🤔 ${r.SUS||0}</span>
-     <span class="pill">🔥 ${r.FIRE||0}</span>`;
+  const tags = (g.tags||[]).slice(0,3).map(t=>`<span class="pill small">${escapeHtml(t)}</span>`).join(" ");
+  const preview = escapeHtml(toPreview(g.details)).slice(0, 500);
 
   return `
-  <div class="item clickable" ${active} onclick="openGossip(${g.id})">
-    <h3>${escapeHtml(g.title)}</h3>
-    <div class="meta">
-      <span class="pill">${g.status}</span>
-      <span class="pill">Cred ${g.credibility}</span>
-      <span class="pill">Por: ${escapeHtml(g.created_by)}</span>
-      <span class="pill">💬 ${g.comment_count}</span>
-      <span class="pill">⭐ ${score(g)}</span>
+  <div class="feedItem" ${active}>
+    <div class="feedTop">
+      <div>
+        <div class="metaRow" style="margin-bottom:8px;">
+          <span class="pill small">${g.status}</span>
+          <span class="pill small">Cred ${g.credibility}</span>
+          <span class="pill small">Por: ${escapeHtml(g.created_by)}</span>
+          <span class="pill small">💬 ${g.comment_count}</span>
+          <span class="pill small">⭐ ${score(g)}</span>
+        </div>
+        <h3 class="feedTitle">${escapeHtml(g.title)}</h3>
+      </div>
+
+      <button class="openBtn" onclick="openGossip(${g.id})">Abrir</button>
     </div>
-    <div class="meta">${reactSummary}</div>
-    <div class="muted">${escapeHtml(g.source)} • ${fmtTs(g.updated_at)}</div>
-    <div style="margin-top:8px;">${tags || `<span class="muted">Sem tags</span>`}</div>
+
+    <div class="preview">${preview || "Sem detalhes…"}</div>
+
+    ${reactLine(g)}
+
+    <div class="metaRow">
+      <span class="pill small">${escapeHtml(g.source)}</span>
+      <span class="pill small">${fmtTs(g.updated_at)}</span>
+      ${tags || `<span class="pill small ghost">Sem tags</span>`}
+    </div>
   </div>`;
 }
 
@@ -458,7 +526,7 @@ async function refreshHeaderAndStats(){
   MY = await api("/api/me");
   document.getElementById("who").textContent = `Logado como: ${MY.label} • Título: ${MY.title} • Fofocas: ${MY.total_gossips}`;
 
-  const medals = (MY.badges||[]).map(b => `<span class="pill">${escapeHtml(b)}</span>`).join(" ");
+  const medals = (MY.badges||[]).map(b => `<span class="pill small">${escapeHtml(b)}</span>`).join(" ");
   document.getElementById("profile").innerHTML = medals
     ? `Conquistas: ${medals}`
     : `<span class="muted">Conquistas: nenhuma ainda… poste mais babados 😄</span>`;
@@ -482,20 +550,19 @@ async function openGossip(id){
   document.getElementById("vDetails").textContent = SELECTED_GOSSIP.details;
 
   document.getElementById("vMeta").innerHTML = `
-    <span class="pill">Status: ${SELECTED_GOSSIP.status}</span>
-    <span class="pill">Cred: ${SELECTED_GOSSIP.credibility}</span>
-    <span class="pill">Fonte: ${escapeHtml(SELECTED_GOSSIP.source)}</span>
-    <span class="pill">Por: ${escapeHtml(SELECTED_GOSSIP.created_by)}</span>
-    <span class="pill">Criado: ${fmtTs(SELECTED_GOSSIP.created_at)}</span>
-    <span class="pill">Atualizado: ${fmtTs(SELECTED_GOSSIP.updated_at)}</span>
+    <span class="pill small">Status: ${SELECTED_GOSSIP.status}</span>
+    <span class="pill small">Cred: ${SELECTED_GOSSIP.credibility}</span>
+    <span class="pill small">Fonte: ${escapeHtml(SELECTED_GOSSIP.source)}</span>
+    <span class="pill small">Por: ${escapeHtml(SELECTED_GOSSIP.created_by)}</span>
+    <span class="pill small">Criado: ${fmtTs(SELECTED_GOSSIP.created_at)}</span>
+    <span class="pill small">Atualizado: ${fmtTs(SELECTED_GOSSIP.updated_at)}</span>
   `;
 
-  const tags = (SELECTED_GOSSIP.tags||[]).map(t=>`<span class="pill">${escapeHtml(t)}</span>`).join(" ");
-  document.getElementById("vTags").innerHTML = tags || `<span class="muted">Sem tags</span>`;
+  const tags = (SELECTED_GOSSIP.tags||[]).map(t=>`<span class="pill small">${escapeHtml(t)}</span>`).join(" ");
+  document.getElementById("vTags").innerHTML = tags || `<span class="pill small ghost">Sem tags</span>`;
 
   renderReactions();
 
-  // Backend já faz o bloqueio com 403; aqui é só UX:
   document.getElementById("moveBtn").disabled = false;
   document.getElementById("deleteBtn").disabled = false;
   document.getElementById("permHint").textContent =
@@ -543,17 +610,17 @@ async function loadComments(){
 }
 
 function highlightMentions(html){
-  return html.replaceAll(/@([a-zA-Z0-9_]{3,20})/g, `<span class="pill">@$1</span>`);
+  return html.replaceAll(/@([a-zA-Z0-9_]{3,20})/g, `<span class="pill small">@$1</span>`);
 }
 
 async function loadLeaderboard(){
   const lb = await api("/api/leaderboard?limit=10");
   document.getElementById("leaderboard").innerHTML = lb.map((x, i) => `
-    <div class="item">
-      <div class="meta">
-        <span class="pill">#${i+1}</span>
-        <span class="pill">${escapeHtml(x.label)}</span>
-        <span class="pill">${x.total} fofocas</span>
+    <div class="feedItem">
+      <div class="metaRow">
+        <span class="pill small">#${i+1}</span>
+        <span class="pill small">${escapeHtml(x.label)}</span>
+        <span class="pill small">${x.total} fofocas</span>
       </div>
     </div>
   `).join("");
@@ -649,9 +716,9 @@ async function toggleNotifPanel(){
     const notifs = await api("/api/notifications?limit=25");
     document.getElementById("notifs").innerHTML = notifs.map(n => `
       <div class="notifItem ${n.read_at ? "" : "unread"}">
-        <div class="meta">
-          <span class="pill">${escapeHtml(n.type)}</span>
-          <span class="pill">${fmtTs(n.created_at)}</span>
+        <div class="metaRow">
+          <span class="pill small">${escapeHtml(n.type)}</span>
+          <span class="pill small">${fmtTs(n.created_at)}</span>
         </div>
         <div style="margin-top:6px;">${escapeHtml(n.message)}</div>
         <div class="inline" style="margin-top:10px;">
