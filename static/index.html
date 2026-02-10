@@ -156,6 +156,7 @@
       align-items:center;
       gap:6px;
       line-height:1.4;
+      user-select:none;
     }
     .badge.good{ background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.25); }
     .badge.warn{ background:rgba(234,179,8,.10); border-color:rgba(234,179,8,.22); }
@@ -189,10 +190,90 @@
       margin:12px 0;
     }
 
+    /* Reações */
+    .reactRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      margin-top:8px;
+    }
+    .reactBtn{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      border-radius:999px;
+      padding:7px 10px;
+      font-weight:900;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+      cursor:pointer;
+      box-shadow:none;
+    }
+    .reactBtn.active{
+      background:rgba(34,197,94,.14);
+      border-color:rgba(34,197,94,.28);
+    }
+    .reactCount{
+      font-size:11px;
+      color:var(--muted);
+      font-weight:900;
+      min-width:18px;
+      text-align:center;
+      padding:2px 6px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.18);
+    }
+
+    /* Comentários */
+    .commentsWrap{
+      margin-top:10px;
+    }
+    .commentsList{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      max-height:260px;
+      overflow:auto;
+      padding-right:4px;
+      margin-top:10px;
+    }
+    .commentItem{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:14px;
+      background:rgba(0,0,0,.18);
+      padding:10px;
+    }
+    .commentTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+    }
+    .commentBody{
+      white-space:pre-wrap;
+      font-size:13px;
+      color:#dbe5f0;
+    }
+    .commentComposer{
+      margin-top:10px;
+      display:flex;
+      gap:8px;
+      align-items:flex-end;
+    }
+    .commentComposer textarea{
+      min-height:72px;
+    }
+
     @media (max-width: 1120px){
       .grid{ grid-template-columns: 1fr; }
       .list{ max-height: 40vh; }
       .authGrid{ grid-template-columns: 1fr; }
+      .commentsList{ max-height:220px; }
     }
   </style>
 </head>
@@ -370,6 +451,22 @@
           <div class="meta" id="dTags"></div>
 
           <div class="sp"></div>
+          <div class="muted"><b>Reações</b></div>
+          <div class="reactRow" id="reactionsRow"></div>
+
+          <div class="commentsWrap">
+            <div class="sp"></div>
+            <div class="muted"><b>Comentários</b></div>
+            <div class="commentsList" id="commentsList"></div>
+
+            <div class="commentComposer">
+              <textarea id="commentInput" placeholder="Escreva um comentário… (use @usuario)"></textarea>
+              <button id="commentBtn" class="green">Comentar</button>
+            </div>
+            <div id="commentMsg" class="muted" style="margin-top:8px;"></div>
+          </div>
+
+          <div class="sp"></div>
           <div class="row">
             <div>
               <label class="muted">Mover status</label>
@@ -481,6 +578,13 @@
   const delBtn       = document.getElementById('delBtn');
   const dMsg         = document.getElementById('dMsg');
 
+  // Interações
+  const reactionsRow = document.getElementById('reactionsRow');
+  const commentsList = document.getElementById('commentsList');
+  const commentInput = document.getElementById('commentInput');
+  const commentBtn   = document.getElementById('commentBtn');
+  const commentMsg   = document.getElementById('commentMsg');
+
   let mode = 'feed';
   let selected = null;
 
@@ -533,11 +637,15 @@
     return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
 
+  function fmtTime(ts){
+    try { return new Date(ts).toLocaleString(); }
+    catch { return ts || ''; }
+  }
+
   // ==========================
   // Gamification (Títulos/Medalhas)
   // ==========================
   function gamifyByCount(count){
-    // Títulos por quantidade de fofocas
     const tiers = [
       { at: 0,   title: "Aprendiz de Fofoqueiro(a) 🪴", badge: { label:"Primeira espiada", emoji:"🪴", cls:"good" } },
       { at: 3,   title: "Observador(a) Discreto(a) 🕵️", badge: { label:"Já ouviu 3 vezes", emoji:"🕵️", cls:"good" } },
@@ -552,7 +660,6 @@
       if(count >= t.at) current = t;
     }
 
-    // Medalhas colecionáveis
     const medals = [];
     const push = (ok, emoji, label, cls="") => { if(ok) medals.push({emoji, label, cls}); };
 
@@ -563,7 +670,6 @@
     push(count >= 60, "💎", "Influência no bairro", "hot");
     push(count >= 100,"👑", "A lenda é real", "hot");
 
-    // Próximo nível
     const nextTier = tiers.find(t => t.at > count);
     const nextAt = nextTier ? nextTier.at : null;
     const nextTitle = nextTier ? nextTier.title : null;
@@ -621,7 +727,6 @@
   }
 
   async function getMyGossipCount(userId){
-    // count exato no PostgREST (head)
     const { count, error } = await sb
       .from('gossips')
       .select('id', { count: 'exact', head: true })
@@ -634,14 +739,12 @@
   async function getAuthorGamification(authorId){
     if(authorStatsCache.has(authorId)) return authorStatsCache.get(authorId);
 
-    // Como é um grupo pequeno, dá pra buscar o count por autor sem dor.
     const { count, error } = await sb
       .from('gossips')
       .select('id', { count: 'exact', head: true })
       .eq('created_by', authorId);
 
     if(error){
-      // Cache “neutro” pra não ficar tentando toda hora
       const fallback = { count: 0, ...gamifyByCount(0) };
       authorStatsCache.set(authorId, fallback);
       return fallback;
@@ -654,9 +757,7 @@
   }
 
   async function hydrateAuthorTitles(rows){
-    // pega autores únicos do feed/backlog
     const ids = Array.from(new Set((rows||[]).map(r=>r.created_by).filter(Boolean)));
-    // Limita chamadas simultâneas (pra não virar um inferno)
     const concurrency = 8;
     let i = 0;
 
@@ -734,7 +835,7 @@
       const prof = await ensureProfile(user, username, displayName || username);
 
       currentUserId = user.id;
-      authorStatsCache.clear(); // limpa cache quando troca usuário
+      authorStatsCache.clear();
 
       showApp("Logado como: " + prof.display_name + " (@" + prof.username + ")");
       setAuthMode(false);
@@ -797,7 +898,6 @@
       newTitle.value=''; newSource.value=''; newDetails.value=''; newTags.value=''; newCred.value='50'; newStatus.value='APURACAO';
       createMsg.textContent = 'Ticket registrado com excelência operacional. ✅';
 
-      // atualiza cache do usuário atual (subiu +1)
       const cached = authorStatsCache.get(user.id);
       if(cached){
         const newCount = (cached.count || 0) + 1;
@@ -808,6 +908,189 @@
 
     }catch(err){
       createMsg.textContent = err?.message || 'Erro ao registrar';
+    }
+  };
+
+  // ==========================
+  // Interações: Reações + Comentários
+  // ==========================
+  const REACTIONS = ["👍","😂","😮","🔥","⭐","👎"];
+
+  async function loadInteractions(gossipId){
+    commentMsg.textContent = '';
+    reactionsRow.innerHTML = '<span class="muted">Carregando…</span>';
+    commentsList.innerHTML = '<span class="muted">Carregando…</span>';
+
+    const { data: ses } = await sb.auth.getSession();
+    const user = ses?.session?.user;
+    const myId = user?.id;
+
+    const reactionsPromise = sb
+      .from('reactions')
+      .select('id, reaction, user_id, created_at')
+      .eq('gossip_id', gossipId);
+
+    // embed do autor do comentário via FK comments.user_id -> profiles.id
+    const commentsPromise = sb
+      .from('comments')
+      .select('id, body, created_at, user_id, profiles(display_name, username)')
+      .eq('gossip_id', gossipId)
+      .order('created_at', { ascending: true });
+
+    const [rRes, cRes] = await Promise.all([reactionsPromise, commentsPromise]);
+
+    if(rRes.error){
+      reactionsRow.innerHTML = `<span class="muted">${escapeHtml(rRes.error.message || 'Erro reações')}</span>`;
+    } else {
+      renderReactions(gossipId, rRes.data || [], myId);
+    }
+
+    if(cRes.error){
+      commentsList.innerHTML = `<span class="muted">${escapeHtml(cRes.error.message || 'Erro comentários')}</span>`;
+    } else {
+      renderComments(cRes.data || []);
+    }
+  }
+
+  function renderReactions(gossipId, rows, myId){
+    const counts = new Map();
+    const mine = new Set();
+
+    for(const r of rows){
+      counts.set(r.reaction, (counts.get(r.reaction) || 0) + 1);
+      if(myId && r.user_id === myId) mine.add(r.reaction);
+    }
+
+    reactionsRow.innerHTML = '';
+    for(const emoji of REACTIONS){
+      const btn = document.createElement('button');
+      btn.className = 'reactBtn' + (mine.has(emoji) ? ' active' : '');
+      btn.type = 'button';
+
+      const c = counts.get(emoji) || 0;
+      btn.innerHTML = `<span style="font-size:15px;">${emoji}</span> <span class="reactCount">${c}</span>`;
+      btn.onclick = async () => {
+        await toggleReaction(gossipId, emoji);
+      };
+      reactionsRow.appendChild(btn);
+    }
+
+    // extra: total de reações
+    const total = Array.from(counts.values()).reduce((a,b)=>a+b,0);
+    const totalSpan = document.createElement('span');
+    totalSpan.className = 'badge';
+    totalSpan.textContent = `Total: ${total}`;
+    reactionsRow.appendChild(totalSpan);
+  }
+
+  async function toggleReaction(gossipId, emoji){
+    try{
+      const { data: ses } = await sb.auth.getSession();
+      const user = ses?.session?.user;
+      if(!user){
+        commentMsg.textContent = 'Você precisa estar logado.';
+        return;
+      }
+
+      // existe reação desse usuário nesse emoji?
+      const { data: existing, error: e1 } = await sb
+        .from('reactions')
+        .select('id')
+        .eq('gossip_id', gossipId)
+        .eq('user_id', user.id)
+        .eq('reaction', emoji);
+
+      if(e1) throw e1;
+
+      if(existing && existing.length > 0){
+        // remove (toggle off)
+        const ids = existing.map(x=>x.id);
+        const { error: eDel } = await sb.from('reactions').delete().in('id', ids);
+        if(eDel) throw eDel;
+      }else{
+        // adiciona (toggle on)
+        const { error: eIns } = await sb.from('reactions').insert({
+          gossip_id: gossipId,
+          user_id: user.id,
+          reaction: emoji
+        });
+        if(eIns) throw eIns;
+      }
+
+      // recarrega interações do detalhe
+      await loadInteractions(gossipId);
+
+      // atualiza cards (se sua view computa contagens)
+      await refresh(true);
+
+    }catch(err){
+      commentMsg.textContent = err?.message || 'Erro ao reagir';
+    }
+  }
+
+  function renderComments(rows){
+    commentsList.innerHTML = '';
+    if(rows.length === 0){
+      commentsList.innerHTML = '<span class="muted">Sem comentários ainda… seja o primeiro a opinar 👀</span>';
+      return;
+    }
+
+    for(const c of rows){
+      const prof = c.profiles || {};
+      const name = prof.display_name || '—';
+      const usern = prof.username || '—';
+
+      const div = document.createElement('div');
+      div.className = 'commentItem';
+      div.innerHTML = `
+        <div class="commentTop">
+          <div><b>${escapeHtml(name)}</b> <span class="muted">(@${escapeHtml(usern)})</span></div>
+          <div class="muted">${escapeHtml(fmtTime(c.created_at))}</div>
+        </div>
+        <div class="commentBody">${escapeHtml(c.body || '')}</div>
+      `;
+      commentsList.appendChild(div);
+    }
+
+    // scroll pro final (último comentário)
+    commentsList.scrollTop = commentsList.scrollHeight;
+  }
+
+  commentBtn.onclick = async () => {
+    commentMsg.textContent = '';
+    try{
+      if(!selected){
+        commentMsg.textContent = 'Selecione uma fofoca primeiro.';
+        return;
+      }
+      const body = (commentInput.value || '').trim();
+      if(!body){
+        commentMsg.textContent = 'Digite um comentário.';
+        return;
+      }
+
+      const { data: ses } = await sb.auth.getSession();
+      const user = ses?.session?.user;
+      if(!user){
+        commentMsg.textContent = 'Você precisa estar logado.';
+        return;
+      }
+
+      const { error } = await sb.from('comments').insert({
+        gossip_id: selected.id,
+        user_id: user.id,
+        body
+      });
+      if(error) throw error;
+
+      commentInput.value = '';
+      commentMsg.textContent = 'Comentário enviado ✅';
+
+      await loadInteractions(selected.id);
+      await refresh(true);
+
+    }catch(err){
+      commentMsg.textContent = err?.message || 'Erro ao comentar';
     }
   };
 
@@ -866,11 +1149,12 @@
     }
   }
 
-  function setSelected(row){
+  async function setSelected(row){
     selected = row;
     detailsEmpty.classList.add('hidden');
     detailsBox.classList.remove('hidden');
     dMsg.textContent='';
+    commentMsg.textContent='';
 
     dTitle.textContent = row.title;
     dDetails.textContent = row.details;
@@ -883,7 +1167,7 @@
     const authorG = authorStatsCache.get(row.created_by);
     if(authorG) meta.push('<span class="badge">' + escapeHtml(authorG.title) + '</span>');
 
-    meta.push('<span class="badge">' + new Date(row.created_at).toLocaleString() + '</span>');
+    meta.push('<span class="badge">' + escapeHtml(fmtTime(row.created_at)) + '</span>');
     dMeta.innerHTML = meta.join(' ');
 
     dTags.innerHTML = (row.tags || []).map(t=>'<span class="badge">' + escapeHtml(t) + '</span>').join(' ');
@@ -891,6 +1175,8 @@
 
     delBtn.disabled = !row.is_mine;
     moveBtn.disabled = !row.is_mine;
+
+    await loadInteractions(row.id);
   }
 
   // ==========================
@@ -952,19 +1238,16 @@
 
     showApp("Logado como: " + displayName + " (@" + username + ")");
 
-    // Meu count real (gamificação)
     let myCount = 0;
     try{
       myCount = await getMyGossipCount(user.id);
       authorStatsCache.set(user.id, { count: myCount, ...gamifyByCount(myCount) });
     }catch(e){
-      // se der ruim, não trava a página
       myCount = 0;
       authorStatsCache.set(user.id, { count: 0, ...gamifyByCount(0) });
     }
     renderMyGamification(displayName, username, myCount);
 
-    // Query do feed/backlog/profile (cards)
     let q = sb.from('gossip_cards').select('*').order('created_at', { ascending:false }).limit(50);
     if(mode === 'mine' || mode === 'profile') q = q.eq('created_by', user.id);
 
@@ -977,7 +1260,6 @@
     const rows2 = (rows || []).map(r => ({...r, is_mine: (r.created_by === user.id)}));
     window.__lastRows = rows2;
 
-    // KPI (apenas lista atual)
     const total = rows2.length;
     const conf  = rows2.filter(r=>r.status==='CONFIRMADO').length;
     const apur  = rows2.filter(r=>r.status==='APURACAO').length;
@@ -988,20 +1270,17 @@
     kApur.textContent = apur;
     kArq.textContent = arq;
 
-    // hidrata título de autores do feed
     await hydrateAuthorTitles(rows2);
 
-    // render lista
     renderList(rows2);
 
-    // Ajuste do hint (perfil)
     if(mode === 'profile'){
       exploreHint.textContent = `Perfil de ${displayName} (@${username}) • Título e medalhas acima`;
     }
 
     if(keepSelected && selected){
       const again = rows2.find(r=>r.id === selected.id);
-      if(again) setSelected(again);
+      if(again) await setSelected(again);
     }
   }
 
