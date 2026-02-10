@@ -152,11 +152,42 @@
       border-radius:999px;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.04);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      line-height:1.4;
     }
+    .badge.good{ background:rgba(34,197,94,.12); border-color:rgba(34,197,94,.25); }
+    .badge.warn{ background:rgba(234,179,8,.10); border-color:rgba(234,179,8,.22); }
+    .badge.hot{ background:rgba(239,68,68,.10); border-color:rgba(239,68,68,.22); }
     .btnrow{ display:flex; gap:8px; margin-top:10px; }
     .danger{ background:#5b1622; }
 
     .hidden{ display:none !important; }
+
+    .achWrap{
+      margin-top:12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .achTitle{
+      margin:12px 0 6px;
+      font-weight:900;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .smallNote{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:6px;
+    }
+    .divider{
+      border:0;border-top:1px solid rgba(255,255,255,.08);
+      margin:12px 0;
+    }
 
     @media (max-width: 1120px){
       .grid{ grid-template-columns: 1fr; }
@@ -245,14 +276,20 @@
       </div>
 
       <div class="kpis">
-        <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">Tickets totais</div></div>
+        <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">Tickets totais (lista atual)</div></div>
         <div class="kpi"><div class="n" id="kConf">—</div><div class="l">CONFIRMADO</div></div>
         <div class="kpi"><div class="n" id="kApur">—</div><div class="l">APURAÇÃO</div></div>
         <div class="kpi"><div class="n" id="kArq">—</div><div class="l">ARQUIVADO</div></div>
       </div>
 
-      <div class="sp"></div>
-      <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);"/>
+      <div class="achTitle">
+        <div>Medalhas & Conquistas</div>
+        <span class="badge" id="myLevelBadge">—</span>
+      </div>
+      <div class="achWrap" id="myBadges"></div>
+      <div class="smallNote" id="nextHint">—</div>
+
+      <hr class="divider"/>
 
       <h3 style="margin:12px 0 8px;">Nova ocorrência</h3>
 
@@ -355,6 +392,19 @@
           <div id="dMsg" class="muted" style="margin-top:10px;"></div>
         </div>
       </div>
+
+      <hr class="divider"/>
+
+      <div class="item">
+        <div class="t">Perfil rápido</div>
+        <div class="meta" id="profileQuickMeta">
+          <span class="badge">—</span>
+        </div>
+        <div class="sp"></div>
+        <div class="achWrap" id="profileQuickBadges"></div>
+        <div class="smallNote" id="profileQuickHint">—</div>
+      </div>
+
     </section>
   </section>
 </main>
@@ -405,6 +455,14 @@
 
   const titleLine = document.getElementById('titleLine');
 
+  const myLevelBadge = document.getElementById('myLevelBadge');
+  const myBadges = document.getElementById('myBadges');
+  const nextHint = document.getElementById('nextHint');
+
+  const profileQuickMeta = document.getElementById('profileQuickMeta');
+  const profileQuickBadges = document.getElementById('profileQuickBadges');
+  const profileQuickHint = document.getElementById('profileQuickHint');
+
   const newTitle  = document.getElementById('newTitle');
   const newSource = document.getElementById('newSource');
   const newStatus = document.getElementById('newStatus');
@@ -425,6 +483,10 @@
 
   let mode = 'feed';
   let selected = null;
+
+  // Cache de gamificação por autor (pra mostrar título no feed)
+  const authorStatsCache = new Map(); // user_id -> { count, title, badges, nextAt }
+  let currentUserId = null;
 
   function showAuth(){
     authCard.classList.remove('hidden');
@@ -467,6 +529,154 @@
   toRegisterBtn.onclick = () => setAuthMode(true);
   toLoginBtn.onclick = () => setAuthMode(false);
 
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  // ==========================
+  // Gamification (Títulos/Medalhas)
+  // ==========================
+  function gamifyByCount(count){
+    // Títulos por quantidade de fofocas
+    const tiers = [
+      { at: 0,   title: "Aprendiz de Fofoqueiro(a) 🪴", badge: { label:"Primeira espiada", emoji:"🪴", cls:"good" } },
+      { at: 3,   title: "Observador(a) Discreto(a) 🕵️", badge: { label:"Já ouviu 3 vezes", emoji:"🕵️", cls:"good" } },
+      { at: 10,  title: "Fofoqueiro(a) de Plantão 🗣️", badge: { label:"10 ocorrências", emoji:"🗣️", cls:"warn" } },
+      { at: 20,  title: "Boca de Sacola Corporativa 📣", badge: { label:"20 ocorrências", emoji:"📣", cls:"warn" } },
+      { at: 40,  title: "Vovózinha do Bairro 👵", badge: { label:"40 ocorrências", emoji:"👵", cls:"hot" } },
+      { at: 80,  title: "Lenda Urbana 🏆", badge: { label:"80 ocorrências", emoji:"🏆", cls:"hot" } },
+    ];
+
+    let current = tiers[0];
+    for(const t of tiers){
+      if(count >= t.at) current = t;
+    }
+
+    // Medalhas colecionáveis
+    const medals = [];
+    const push = (ok, emoji, label, cls="") => { if(ok) medals.push({emoji, label, cls}); };
+
+    push(count >= 1,  "✅", "Primeiro ticket", "good");
+    push(count >= 5,  "🥉", "Boca pequena", "good");
+    push(count >= 15, "🥈", "Fofoqueiro(a) sólido(a)", "warn");
+    push(count >= 30, "🥇", "Alto impacto", "warn");
+    push(count >= 60, "💎", "Influência no bairro", "hot");
+    push(count >= 100,"👑", "A lenda é real", "hot");
+
+    // Próximo nível
+    const nextTier = tiers.find(t => t.at > count);
+    const nextAt = nextTier ? nextTier.at : null;
+    const nextTitle = nextTier ? nextTier.title : null;
+
+    return {
+      title: current.title,
+      tierBadge: current.badge,
+      medals,
+      nextAt,
+      nextTitle,
+    };
+  }
+
+  function renderBadges(container, badges){
+    container.innerHTML = '';
+    if(!badges || badges.length === 0){
+      container.innerHTML = '<span class="badge">Sem medalhas ainda… comece fofocando 😌</span>';
+      return;
+    }
+    for(const b of badges){
+      const span = document.createElement('span');
+      span.className = 'badge ' + (b.cls || '');
+      span.textContent = (b.emoji ? (b.emoji + " ") : "") + b.label;
+      container.appendChild(span);
+    }
+  }
+
+  function renderMyGamification(displayName, username, count){
+    const g = gamifyByCount(count);
+
+    myLevelBadge.className = "badge " + (g.tierBadge.cls || "");
+    myLevelBadge.textContent = g.tierBadge.emoji + " " + g.tierBadge.label;
+
+    renderBadges(myBadges, g.medals);
+
+    if(g.nextAt !== null){
+      nextHint.textContent = `Próximo título em ${g.nextAt} fofocas → ${g.nextTitle}`;
+    }else{
+      nextHint.textContent = "Você já atingiu o topo da cadeia alimentar do bairro. 👑";
+    }
+
+    titleLine.textContent =
+      `Título: ${g.title} • Fofoqueiro(a): ${displayName || '—'} (@${username || '—'}) • Fofocas: ${count}`;
+
+    profileQuickMeta.innerHTML =
+      `<span class="badge ${g.tierBadge.cls||''}">${escapeHtml(g.title)}</span>
+       <span class="badge">Fofocas: ${count}</span>`;
+
+    renderBadges(profileQuickBadges, g.medals);
+
+    profileQuickHint.textContent =
+      g.nextAt !== null
+        ? `Próximo nível: ${g.nextAt} fofocas.`
+        : `Você zerou o bairro.`;
+  }
+
+  async function getMyGossipCount(userId){
+    // count exato no PostgREST (head)
+    const { count, error } = await sb
+      .from('gossips')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', userId);
+
+    if(error) throw error;
+    return count || 0;
+  }
+
+  async function getAuthorGamification(authorId){
+    if(authorStatsCache.has(authorId)) return authorStatsCache.get(authorId);
+
+    // Como é um grupo pequeno, dá pra buscar o count por autor sem dor.
+    const { count, error } = await sb
+      .from('gossips')
+      .select('id', { count: 'exact', head: true })
+      .eq('created_by', authorId);
+
+    if(error){
+      // Cache “neutro” pra não ficar tentando toda hora
+      const fallback = { count: 0, ...gamifyByCount(0) };
+      authorStatsCache.set(authorId, fallback);
+      return fallback;
+    }
+
+    const g = gamifyByCount(count || 0);
+    const obj = { count: count || 0, ...g };
+    authorStatsCache.set(authorId, obj);
+    return obj;
+  }
+
+  async function hydrateAuthorTitles(rows){
+    // pega autores únicos do feed/backlog
+    const ids = Array.from(new Set((rows||[]).map(r=>r.created_by).filter(Boolean)));
+    // Limita chamadas simultâneas (pra não virar um inferno)
+    const concurrency = 8;
+    let i = 0;
+
+    async function worker(){
+      while(i < ids.length){
+        const id = ids[i++];
+        await getAuthorGamification(id);
+      }
+    }
+
+    const workers = [];
+    for(let w=0; w<Math.min(concurrency, ids.length); w++){
+      workers.push(worker());
+    }
+    await Promise.all(workers);
+  }
+
+  // ==========================
+  // Auth / Profile
+  // ==========================
   async function ensureProfile(user, username, displayName){
     const { data: prof } = await sb
       .from('profiles')
@@ -522,6 +732,10 @@
       if(!user) throw new Error('Sem sessão. Verifique Email Confirm OFF no Supabase.');
 
       const prof = await ensureProfile(user, username, displayName || username);
+
+      currentUserId = user.id;
+      authorStatsCache.clear(); // limpa cache quando troca usuário
+
       showApp("Logado como: " + prof.display_name + " (@" + prof.username + ")");
       setAuthMode(false);
       await refresh();
@@ -535,6 +749,8 @@
 
   logoutBtn.onclick = async () => {
     await sb.auth.signOut();
+    currentUserId = null;
+    authorStatsCache.clear();
     showAuth();
   };
 
@@ -545,10 +761,13 @@
 
   tabFeed.onclick = async () => { mode='feed'; setActiveTab(tabFeed); exploreHint.textContent='Feed do grupo (todas as fofocas)'; await refresh(); };
   tabMine.onclick = async () => { mode='mine'; setActiveTab(tabMine); exploreHint.textContent='Meu Backlog (só minhas fofocas)'; await refresh(); };
-  tabProfile.onclick = async () => { mode='profile'; setActiveTab(tabProfile); exploreHint.textContent='Perfil (em breve: medalhas + títulos)'; await refresh(); };
+  tabProfile.onclick = async () => { mode='profile'; setActiveTab(tabProfile); exploreHint.textContent='Perfil (título + medalhas + minhas fofocas)'; await refresh(); };
 
   refreshBtn.onclick = refresh;
 
+  // ==========================
+  // Create
+  // ==========================
   createBtn.onclick = async () => {
     createMsg.textContent = '';
     try{
@@ -577,6 +796,14 @@
 
       newTitle.value=''; newSource.value=''; newDetails.value=''; newTags.value=''; newCred.value='50'; newStatus.value='APURACAO';
       createMsg.textContent = 'Ticket registrado com excelência operacional. ✅';
+
+      // atualiza cache do usuário atual (subiu +1)
+      const cached = authorStatsCache.get(user.id);
+      if(cached){
+        const newCount = (cached.count || 0) + 1;
+        authorStatsCache.set(user.id, { count: newCount, ...gamifyByCount(newCount) });
+      }
+
       await refresh();
 
     }catch(err){
@@ -584,11 +811,10 @@
     }
   };
 
+  // ==========================
+  // List / Render
+  // ==========================
   searchEl.oninput = () => renderList(window.__lastRows || []);
-
-  function escapeHtml(s){
-    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
 
   function renderList(rows){
     const q = (searchEl.value || '').toLowerCase().trim();
@@ -596,7 +822,8 @@
       (r.title||'').toLowerCase().includes(q) ||
       (r.details||'').toLowerCase().includes(q) ||
       (r.source||'').toLowerCase().includes(q) ||
-      (r.author_username||'').toLowerCase().includes(q)
+      (r.author_username||'').toLowerCase().includes(q) ||
+      (r.author_display_name||'').toLowerCase().includes(q)
     );
 
     listEl.innerHTML = '';
@@ -613,12 +840,16 @@
       const preview = (r.details || '').split('\n').slice(0,2).join('\n');
       const tags = (r.tags || []).slice(0,3).map(t=>`<span class="badge">${escapeHtml(t)}</span>`).join(' ');
 
+      const authorG = authorStatsCache.get(r.created_by);
+      const authorTitle = authorG ? authorG.title : "—";
+
       div.innerHTML = `
         <div class="t">${escapeHtml(r.title)}</div>
         <div class="meta">
           <span class="badge">${escapeHtml(r.status)}</span>
           <span class="badge">Cred ${r.credibility}</span>
           <span class="badge">Por: ${escapeHtml(r.author_display_name || '—')} (@${escapeHtml(r.author_username || '—')})</span>
+          <span class="badge">${escapeHtml(authorTitle)}</span>
           <span class="badge">💬 ${r.comment_count || 0}</span>
         </div>
         <div class="sp"></div>
@@ -647,7 +878,11 @@
     const meta = [];
     meta.push('<span class="badge">' + row.status + '</span>');
     meta.push('<span class="badge">Cred ' + row.credibility + '</span>');
-    meta.push('<span class="badge">Por: ' + (row.author_display_name || '—') + ' (@' + (row.author_username || '—') + ')</span>');
+    meta.push('<span class="badge">Por: ' + (escapeHtml(row.author_display_name || '—')) + ' (@' + (escapeHtml(row.author_username || '—')) + ')</span>');
+
+    const authorG = authorStatsCache.get(row.created_by);
+    if(authorG) meta.push('<span class="badge">' + escapeHtml(authorG.title) + '</span>');
+
     meta.push('<span class="badge">' + new Date(row.created_at).toLocaleString() + '</span>');
     dMeta.innerHTML = meta.join(' ');
 
@@ -658,6 +893,9 @@
     moveBtn.disabled = !row.is_mine;
   }
 
+  // ==========================
+  // Actions: move / delete
+  // ==========================
   moveBtn.onclick = async () => {
     if(!selected) return;
     dMsg.textContent='';
@@ -688,6 +926,9 @@
     }
   };
 
+  // ==========================
+  // Refresh
+  // ==========================
   async function refresh(keepSelected=false){
     listMsg.textContent = '';
     createMsg.textContent = '';
@@ -698,13 +939,34 @@
       showAuth();
       return;
     }
+    currentUserId = user.id;
 
-    const { data: prof } = await sb.from('profiles').select('username, display_name').eq('id', user.id).maybeSingle();
-    showApp("Logado como: " + (prof?.display_name || '—') + " (@" + (prof?.username || '—') + ")");
-    titleLine.textContent = "Título: Aprendiz de Fofoqueiro(a) 🪴 • Fofoqueiro(a): " + (prof?.display_name || '—') + " (@" + (prof?.username || '—') + ")";
+    const { data: prof } = await sb
+      .from('profiles')
+      .select('username, display_name')
+      .eq('id', user.id)
+      .maybeSingle();
 
+    const displayName = prof?.display_name || '—';
+    const username = prof?.username || '—';
+
+    showApp("Logado como: " + displayName + " (@" + username + ")");
+
+    // Meu count real (gamificação)
+    let myCount = 0;
+    try{
+      myCount = await getMyGossipCount(user.id);
+      authorStatsCache.set(user.id, { count: myCount, ...gamifyByCount(myCount) });
+    }catch(e){
+      // se der ruim, não trava a página
+      myCount = 0;
+      authorStatsCache.set(user.id, { count: 0, ...gamifyByCount(0) });
+    }
+    renderMyGamification(displayName, username, myCount);
+
+    // Query do feed/backlog/profile (cards)
     let q = sb.from('gossip_cards').select('*').order('created_at', { ascending:false }).limit(50);
-    if(mode === 'mine') q = q.eq('created_by', user.id);
+    if(mode === 'mine' || mode === 'profile') q = q.eq('created_by', user.id);
 
     const { data: rows, error } = await q;
     if(error){
@@ -715,6 +977,7 @@
     const rows2 = (rows || []).map(r => ({...r, is_mine: (r.created_by === user.id)}));
     window.__lastRows = rows2;
 
+    // KPI (apenas lista atual)
     const total = rows2.length;
     const conf  = rows2.filter(r=>r.status==='CONFIRMADO').length;
     const apur  = rows2.filter(r=>r.status==='APURACAO').length;
@@ -725,7 +988,16 @@
     kApur.textContent = apur;
     kArq.textContent = arq;
 
+    // hidrata título de autores do feed
+    await hydrateAuthorTitles(rows2);
+
+    // render lista
     renderList(rows2);
+
+    // Ajuste do hint (perfil)
+    if(mode === 'profile'){
+      exploreHint.textContent = `Perfil de ${displayName} (@${username}) • Título e medalhas acima`;
+    }
 
     if(keepSelected && selected){
       const again = rows2.find(r=>r.id === selected.id);
