@@ -9,12 +9,9 @@
     :root{
       --bg:#0b0f14;
       --panel:#0f1620;
-      --panel2:#0c131b;
       --border:#1f2a37;
       --text:#e6edf3;
       --muted:#9aa4b2;
-      --blue:#1d4ed8;
-      --green:#166534;
       --btn:#143a63;
       --btn2:#153a2a;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
@@ -36,6 +33,7 @@
       padding:8px 12px; border:1px solid var(--border); border-radius:999px;
       background:rgba(255,255,255,.02); color:var(--muted); font-size:12px;
     }
+
     button{
       cursor:pointer;
       border-radius:12px;
@@ -43,7 +41,7 @@
       background:var(--btn);
       color:#fff;
       padding:10px 14px;
-      font-weight:700;
+      font-weight:800;
       box-shadow:0 6px 18px rgba(0,0,0,.25);
     }
     button.secondary{ background:#0f2237; }
@@ -55,6 +53,25 @@
       margin:18px auto;
       padding:0 18px 40px;
     }
+
+    /* AUTH CENTRALIZADO */
+    .authWrap{
+      display:flex;
+      justify-content:center;
+      padding-top:18px;
+    }
+    .authCard{
+      width:100%;
+      max-width:860px;
+    }
+    .authGrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+      align-items:start;
+    }
+    .authGrid .full{ grid-column:1 / -1; }
+
     .grid{
       display:grid;
       grid-template-columns: 420px minmax(420px, 1fr) 420px;
@@ -83,7 +100,6 @@
     }
     textarea{ min-height:110px; resize:vertical; }
     .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
-    .row3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
     .sp{ height:10px; }
     .topline{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
     .tabs{ display:flex; gap:8px; flex-wrap:wrap; }
@@ -93,7 +109,7 @@
       background:rgba(255,255,255,.02);
       border-radius:999px;
       cursor:pointer;
-      font-weight:800;
+      font-weight:900;
       font-size:12px;
       color:#dbe5f0;
     }
@@ -142,10 +158,10 @@
 
     .hidden{ display:none !important; }
 
-    /* Mobile */
     @media (max-width: 1120px){
       .grid{ grid-template-columns: 1fr; }
       .list{ max-height: 40vh; }
+      .authGrid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -165,38 +181,52 @@
 
 <main>
   <!-- AUTH -->
-  <section class="card" id="authCard">
-    <h2>Acesso</h2>
-    <div class="muted">Crie sua conta e vire uma entidade do bairro. (Login sem email real)</div>
+  <section id="authCard" class="authWrap">
+    <div class="card authCard">
+      <h2>Acesso</h2>
+      <div class="muted">Crie sua conta e vire uma entidade do bairro. (Login sem email real)</div>
 
-    <div class="sp"></div>
+      <div class="sp"></div>
+      <div id="authModeHint" class="muted">Modo: <b>Login</b></div>
+      <div class="sp"></div>
 
-    <div id="authModeHint" class="muted">Modo: <b>Login</b></div>
-    <div class="sp"></div>
+      <div class="authGrid">
+        <div class="full">
+          <label class="muted">Usuário</label>
+          <input id="username" placeholder="ex: lucas_fofoca" autocomplete="username"/>
+        </div>
 
-    <input id="username" placeholder="Usuário (ex: lucas_fofoca)" autocomplete="username"/>
-    <div class="sp"></div>
+        <div id="nameBox" class="full hidden">
+          <label class="muted">Nome</label>
+          <input id="displayName" placeholder="ex: Lucas" autocomplete="name"/>
+        </div>
 
-    <input id="displayName" placeholder="Nome (ex: Lucas)" class="hidden" autocomplete="name"/>
-    <div class="sp hidden" id="spName"></div>
+        <div class="full">
+          <label class="muted">Senha</label>
+          <input id="password" placeholder="mín. 6" type="password" autocomplete="current-password"/>
+        </div>
 
-    <input id="password" placeholder="Senha (mín. 6)" type="password" autocomplete="current-password"/>
-    <div class="sp"></div>
+        <div class="full">
+          <button id="loginBtn" style="width:100%;">Entrar</button>
+        </div>
 
-    <button id="loginBtn">Entrar</button>
-    <div class="btnrow">
-      <button id="toRegisterBtn" class="green" style="flex:1;">Criar conta</button>
-      <button id="toLoginBtn" class="secondary hidden" style="flex:1;">Voltar para o login</button>
+        <div class="full btnrow">
+          <button id="toRegisterBtn" class="green" style="flex:1;">Criar conta</button>
+          <button id="toLoginBtn" class="secondary hidden" style="flex:1;">Voltar para o login</button>
+        </div>
+
+        <div class="full">
+          <div id="authMsg" class="muted"></div>
+          <div class="sp"></div>
+          <div class="muted">Dica: seu “email interno” vira <b>usuario@fofoca.local</b> automaticamente.</div>
+        </div>
+      </div>
     </div>
-
-    <div id="authMsg" class="muted" style="margin-top:10px;"></div>
-    <div class="sp"></div>
-    <div class="muted">Dica: seu “email interno” vira <b>usuario@fofoca.local</b> automaticamente.</div>
   </section>
 
   <!-- APP -->
   <section class="grid hidden" id="appGrid">
-    <!-- LEFT: DASH + CREATE -->
+    <!-- LEFT -->
     <section class="card">
       <div class="topline">
         <div>
@@ -267,7 +297,7 @@
       <div id="createMsg" class="muted" style="margin-top:10px;"></div>
     </section>
 
-    <!-- CENTER: FEED/BACKLOG -->
+    <!-- CENTER -->
     <section class="card">
       <div class="topline">
         <div>
@@ -282,12 +312,13 @@
       <div id="listMsg" class="muted" style="margin-top:10px;"></div>
     </section>
 
-    <!-- RIGHT: DETAILS -->
+    <!-- RIGHT -->
     <section class="card">
       <div class="topline">
         <h2 style="margin:0;">Visualização</h2>
         <div class="muted">Detalhes + colaboração</div>
       </div>
+
       <div class="sp"></div>
 
       <div id="detailsEmpty" class="muted">Selecione uma fofoca no feed/backlog para ver detalhes e colaborar.</div>
@@ -328,26 +359,24 @@
   </section>
 </main>
 
-<!-- Supabase v2 UMD -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-  // ======= CONFIG (cole seus valores aqui) =======
+  // ======= CONFIG =======
   const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.supabase.co";
   const SUPABASE_ANON_KEY = "COLE_SUA_ANON_KEY_AQUI";
-  // ==============================================
+  // ======================
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // UI refs
   const authCard = document.getElementById('authCard');
   const appGrid  = document.getElementById('appGrid');
   const who      = document.getElementById('who');
   const logoutBtn= document.getElementById('logoutBtn');
 
   const usernameEl   = document.getElementById('username');
+  const nameBox      = document.getElementById('nameBox');
   const displayNameEl= document.getElementById('displayName');
-  const spName       = document.getElementById('spName');
   const passwordEl   = document.getElementById('password');
   const authMsg      = document.getElementById('authMsg');
   const authModeHint = document.getElementById('authModeHint');
@@ -394,7 +423,7 @@
   const delBtn       = document.getElementById('delBtn');
   const dMsg         = document.getElementById('dMsg');
 
-  let mode = 'feed'; // feed | mine | profile
+  let mode = 'feed';
   let selected = null;
 
   function showAuth(){
@@ -403,6 +432,7 @@
     logoutBtn.classList.add('hidden');
     who.textContent = 'Não logado';
   }
+
   function showApp(label){
     authCard.classList.add('hidden');
     appGrid.classList.remove('hidden');
@@ -413,23 +443,20 @@
   function normUsername(u){
     return (u||'').trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
   }
-
   function makeEmail(username){
-    return `${username}@fofoca.local`;
+    return username + "@fofoca.local";
   }
 
   function setAuthMode(isRegister){
     if(isRegister){
       authModeHint.innerHTML = 'Modo: <b>Criar conta</b>';
-      displayNameEl.classList.remove('hidden');
-      spName.classList.remove('hidden');
+      nameBox.classList.remove('hidden');
       toLoginBtn.classList.remove('hidden');
       toRegisterBtn.classList.add('hidden');
       loginBtn.textContent = 'Criar e entrar';
     }else{
       authModeHint.innerHTML = 'Modo: <b>Login</b>';
-      displayNameEl.classList.add('hidden');
-      spName.classList.add('hidden');
+      nameBox.classList.add('hidden');
       toLoginBtn.classList.add('hidden');
       toRegisterBtn.classList.remove('hidden');
       loginBtn.textContent = 'Entrar';
@@ -441,23 +468,15 @@
   toLoginBtn.onclick = () => setAuthMode(false);
 
   async function ensureProfile(user, username, displayName){
-    // tenta buscar
-    const { data: prof, error: e1 } = await sb
+    const { data: prof } = await sb
       .from('profiles')
       .select('id, username, display_name')
       .eq('id', user.id)
       .maybeSingle();
 
-    if(e1 && e1.code !== 'PGRST116'){ /* ignore not found */ }
-
     if(prof) return prof;
 
-    const payload = {
-      id: user.id,
-      username,
-      display_name: displayName || username
-    };
-
+    const payload = { id: user.id, username, display_name: displayName || username };
     const { data, error } = await sb.from('profiles').insert(payload).select().single();
     if(error) throw error;
     return data;
@@ -466,10 +485,9 @@
   async function doLoginOrRegister(){
     authMsg.textContent = '';
 
-    const rawU = usernameEl.value;
-    const username = normUsername(rawU);
+    const username = normUsername(usernameEl.value);
     const password = passwordEl.value || '';
-    const displayName = displayNameEl.value.trim();
+    const displayName = (displayNameEl?.value || '').trim();
 
     if(!username || username.length < 3){
       authMsg.textContent = 'Usuário inválido (mín. 3). Use letras/números/_';
@@ -484,39 +502,32 @@
 
     try{
       if(loginBtn.textContent.includes('Criar')){
-        // SIGN UP
         const { data: su, error: eSU } = await sb.auth.signUp({
-          email,
-          password,
+          email, password,
           options: { data: { username, display_name: displayName || username } }
         });
         if(eSU) throw eSU;
 
-        // Se email confirmation estiver OFF, já vem session.
-        // Se vier sem session, tenta login em seguida.
         if(!su.session){
-          const { data: si2, error: eSI2 } = await sb.auth.signInWithPassword({ email, password });
+          const { error: eSI2 } = await sb.auth.signInWithPassword({ email, password });
           if(eSI2) throw eSI2;
         }
-
       }else{
-        // SIGN IN
         const { error: eSI } = await sb.auth.signInWithPassword({ email, password });
         if(eSI) throw eSI;
       }
 
-      // sessão atual
       const { data: ses } = await sb.auth.getSession();
       const user = ses?.session?.user;
-      if(!user) throw new Error('Não consegui obter sessão. Verifique o Email Confirm OFF.');
+      if(!user) throw new Error('Sem sessão. Verifique Email Confirm OFF no Supabase.');
 
       const prof = await ensureProfile(user, username, displayName || username);
-      showApp(`Logado como: ${prof.display_name} (@${prof.username})`);
+      showApp("Logado como: " + prof.display_name + " (@" + prof.username + ")");
       setAuthMode(false);
       await refresh();
 
     }catch(err){
-      authMsg.textContent = (err?.message || 'Erro de autenticação');
+      authMsg.textContent = err?.message || 'Erro de autenticação';
     }
   }
 
@@ -553,23 +564,14 @@
       const details = newDetails.value.trim();
       const status = newStatus.value;
       const credibility = Math.max(0, Math.min(100, parseInt(newCred.value || '50', 10)));
-      const tags = (newTags.value || '')
-        .split(',')
-        .map(s=>s.trim())
-        .filter(Boolean);
+      const tags = (newTags.value || '').split(',').map(s=>s.trim()).filter(Boolean);
 
       if(!title || !source || !details){
         createMsg.textContent = 'Preencha Título, Fonte e Detalhes.';
         return;
       }
 
-      const payload = {
-        title, source, details, status,
-        credibility,
-        tags,
-        created_by: user.id
-      };
-
+      const payload = { title, source, details, status, credibility, tags, created_by: user.id };
       const { error } = await sb.from('gossips').insert(payload);
       if(error) throw error;
 
@@ -578,11 +580,60 @@
       await refresh();
 
     }catch(err){
-      createMsg.textContent = (err?.message || 'Erro ao registrar');
+      createMsg.textContent = err?.message || 'Erro ao registrar';
     }
   };
 
   searchEl.oninput = () => renderList(window.__lastRows || []);
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  function renderList(rows){
+    const q = (searchEl.value || '').toLowerCase().trim();
+    const filtered = !q ? rows : rows.filter(r =>
+      (r.title||'').toLowerCase().includes(q) ||
+      (r.details||'').toLowerCase().includes(q) ||
+      (r.source||'').toLowerCase().includes(q) ||
+      (r.author_username||'').toLowerCase().includes(q)
+    );
+
+    listEl.innerHTML = '';
+    if(filtered.length === 0){
+      listMsg.textContent = 'Nada por aqui ainda.';
+      return;
+    }
+    listMsg.textContent = '';
+
+    for(const r of filtered){
+      const div = document.createElement('div');
+      div.className='item';
+
+      const preview = (r.details || '').split('\n').slice(0,2).join('\n');
+      const tags = (r.tags || []).slice(0,3).map(t=>`<span class="badge">${escapeHtml(t)}</span>`).join(' ');
+
+      div.innerHTML = `
+        <div class="t">${escapeHtml(r.title)}</div>
+        <div class="meta">
+          <span class="badge">${escapeHtml(r.status)}</span>
+          <span class="badge">Cred ${r.credibility}</span>
+          <span class="badge">Por: ${escapeHtml(r.author_display_name || '—')} (@${escapeHtml(r.author_username || '—')})</span>
+          <span class="badge">💬 ${r.comment_count || 0}</span>
+        </div>
+        <div class="sp"></div>
+        <div style="white-space:pre-wrap; color:#cdd6e1; font-size:13px;">${escapeHtml(preview)}${(r.details||'').includes('\n') ? '…' : ''}</div>
+        <div class="sp"></div>
+        <div class="meta">${tags}</div>
+        <div class="sp"></div>
+        <div class="btnrow">
+          <button class="secondary" data-open="1">Abrir</button>
+        </div>
+      `;
+      div.querySelector('[data-open="1"]').onclick = () => setSelected(r);
+      listEl.appendChild(div);
+    }
+  }
 
   function setSelected(row){
     selected = row;
@@ -594,16 +645,15 @@
     dDetails.textContent = row.details;
 
     const meta = [];
-    meta.push(`<span class="badge">${row.status}</span>`);
-    meta.push(`<span class="badge">Cred ${row.credibility}</span>`);
-    meta.push(`<span class="badge">Por: ${row.author_display_name || ‘—’} (@${row.author_username || ‘—’})</span>`);
-    meta.push(`<span class="badge">${new Date(row.created_at).toLocaleString()}</span>`);
+    meta.push('<span class="badge">' + row.status + '</span>');
+    meta.push('<span class="badge">Cred ' + row.credibility + '</span>');
+    meta.push('<span class="badge">Por: ' + (row.author_display_name || '—') + ' (@' + (row.author_username || '—') + ')</span>');
+    meta.push('<span class="badge">' + new Date(row.created_at).toLocaleString() + '</span>');
     dMeta.innerHTML = meta.join(' ');
 
-    dTags.innerHTML = (row.tags || []).map(t=>`<span class="badge">${t}</span>`).join(' ');
+    dTags.innerHTML = (row.tags || []).map(t=>'<span class="badge">' + escapeHtml(t) + '</span>').join(' ');
     moveStatus.value = row.status;
 
-    // habilita excluir/mover apenas se for dono (server RLS também confere)
     delBtn.disabled = !row.is_mine;
     moveBtn.disabled = !row.is_mine;
   }
@@ -638,56 +688,6 @@
     }
   };
 
-  function renderList(rows){
-    const q = (searchEl.value || '').toLowerCase().trim();
-    const filtered = !q ? rows : rows.filter(r =>
-      (r.title||'').toLowerCase().includes(q) ||
-      (r.details||'').toLowerCase().includes(q) ||
-      (r.source||'').toLowerCase().includes(q) ||
-      (r.author_username||'').toLowerCase().includes(q)
-    );
-
-    listEl.innerHTML = '';
-    if(filtered.length === 0){
-      listMsg.textContent = 'Nada por aqui ainda.';
-      return;
-    }
-    listMsg.textContent = '';
-
-    for(const r of filtered){
-      const div = document.createElement('div');
-      div.className='item';
-
-      const preview = (r.details || '').split('\n').slice(0,2).join('\n');
-      const tags = (r.tags || []).slice(0,3).map(t=>`<span class="badge">${t}</span>`).join(' ');
-
-      div.innerHTML = `
-        <div class="t">${escapeHtml(r.title)}</div>
-        <div class="meta">
-          <span class="badge">${r.status}</span>
-          <span class="badge">Cred ${r.credibility}</span>
-          <span class="badge">Por: ${escapeHtml(r.author_display_name || '—')} (@${escapeHtml(r.author_username || '—')})</span>
-          <span class="badge">💬 ${r.comment_count || 0}</span>
-        </div>
-        <div class="sp"></div>
-        <div style="white-space:pre-wrap; color:#cdd6e1; font-size:13px;">${escapeHtml(preview)}${(r.details||'').includes('\n') ? '…' : ''}</div>
-        <div class="sp"></div>
-        <div class="meta">${tags}</div>
-        <div class="sp"></div>
-        <div class="btnrow">
-          <button class="secondary" data-open="1">Abrir</button>
-        </div>
-      `;
-
-      div.querySelector('[data-open="1"]').onclick = () => setSelected(r);
-      listEl.appendChild(div);
-    }
-  }
-
-  function escapeHtml(s){
-    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
-
   async function refresh(keepSelected=false){
     listMsg.textContent = '';
     createMsg.textContent = '';
@@ -699,17 +699,12 @@
       return;
     }
 
-    // carrega profile
     const { data: prof } = await sb.from('profiles').select('username, display_name').eq('id', user.id).maybeSingle();
-    showApp(`Logado como: ${prof?.display_name || '—'} (@${prof?.username || '—'})`);
-    titleLine.textContent = `Título: Aprendiz de Fofoqueiro(a) 🪴 • Fofoqueiro(a): ${prof?.display_name || '—'} (@${prof?.username || '—'})`;
+    showApp("Logado como: " + (prof?.display_name || '—') + " (@" + (prof?.username || '—') + ")");
+    titleLine.textContent = "Título: Aprendiz de Fofoqueiro(a) 🪴 • Fofoqueiro(a): " + (prof?.display_name || '—') + " (@" + (prof?.username || '—') + ")";
 
-    // query feed/backlog
     let q = sb.from('gossip_cards').select('*').order('created_at', { ascending:false }).limit(50);
-
-    if(mode === 'mine'){
-      q = q.eq('created_by', user.id);
-    }
+    if(mode === 'mine') q = q.eq('created_by', user.id);
 
     const { data: rows, error } = await q;
     if(error){
@@ -717,15 +712,14 @@
       return;
     }
 
-    // marca se é do usuário
     const rows2 = (rows || []).map(r => ({...r, is_mine: (r.created_by === user.id)}));
     window.__lastRows = rows2;
 
-    // KPIs (simples)
     const total = rows2.length;
     const conf  = rows2.filter(r=>r.status==='CONFIRMADO').length;
     const apur  = rows2.filter(r=>r.status==='APURACAO').length;
     const arq   = rows2.filter(r=>r.status==='ARQUIVADO').length;
+
     kTotal.textContent = total;
     kConf.textContent = conf;
     kApur.textContent = apur;
@@ -739,16 +733,12 @@
     }
   }
 
-  // Startup: decide se mostra login ou app
   (async () => {
     setAuthMode(false);
 
     const { data: ses } = await sb.auth.getSession();
-    if(ses?.session?.user){
-      await refresh();
-    }else{
-      showAuth();
-    }
+    if(ses?.session?.user) await refresh();
+    else showAuth();
 
     sb.auth.onAuthStateChange(async (event, session) => {
       if(session?.user) await refresh();
