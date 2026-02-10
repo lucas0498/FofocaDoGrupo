@@ -1,1017 +1,760 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>FofocaDoGrupo • GossipCRM</title>
+  <title>FofocaDoGrupo — GossipCRM</title>
+
   <style>
     :root{
-      --bg:#070b10;
-      --panel:#0b1220;
-      --panel2:#0a111e;
-      --stroke:rgba(255,255,255,.08);
-      --stroke2:rgba(255,255,255,.12);
-      --text:rgba(255,255,255,.92);
-      --muted:rgba(255,255,255,.62);
-      --accent:#2b74ff;
-      --green:#1faa63;
-      --danger:#d84b4b;
-      --shadow: 0 18px 60px rgba(0,0,0,.45);
-      --radius:18px;
-      --radius2:12px;
+      --bg:#0b0f14;
+      --panel:#0f1620;
+      --panel2:#0c131b;
+      --border:#1f2a37;
+      --text:#e6edf3;
+      --muted:#9aa4b2;
+      --blue:#1d4ed8;
+      --green:#166534;
+      --btn:#143a63;
+      --btn2:#153a2a;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 18px;
     }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      background: radial-gradient(1000px 500px at 20% 0%, rgba(43,116,255,.14), transparent 60%),
-                  radial-gradient(1000px 500px at 80% 0%, rgba(31,170,99,.12), transparent 55%),
-                  var(--bg);
-      color:var(--text);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
-      min-height:100vh;
+    *{ box-sizing:border-box; }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    header{
+      padding:16px 22px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
     }
-    a{color:inherit}
-    .topbar{
-      position:sticky; top:0; z-index:20;
-      backdrop-filter: blur(10px);
-      background: rgba(7,11,16,.72);
-      border-bottom:1px solid var(--stroke);
-    }
-    .wrap{
-      max-width:1280px;
-      margin:0 auto;
-      padding:18px 16px;
-    }
-    .brand{
-      display:flex; align-items:center; justify-content:space-between; gap:14px;
-    }
-    .brand h1{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-    }
-    .brand small{
-      display:block;
-      color:var(--muted);
-      margin-top:4px;
-      font-size:12px;
-    }
-    .rightbar{
-      display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;
-    }
+    .brand{ font-weight:900; letter-spacing:.2px; }
+    .sub{ color:var(--muted); font-size:12px; margin-top:3px; }
+    .right{ display:flex; align-items:center; gap:10px; }
     .pill{
-      display:inline-flex; align-items:center; gap:8px;
-      padding:8px 10px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.03);
-      color:var(--muted);
-      font-size:12px;
-      white-space:nowrap;
+      padding:8px 12px; border:1px solid var(--border); border-radius:999px;
+      background:rgba(255,255,255,.02); color:var(--muted); font-size:12px;
     }
-    .btn{
-      border:1px solid var(--stroke2);
-      background: rgba(255,255,255,.04);
-      color:var(--text);
-      padding:10px 12px;
-      border-radius:12px;
+    button{
       cursor:pointer;
-      font-weight:600;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background:var(--btn);
+      color:#fff;
+      padding:10px 14px;
+      font-weight:700;
+      box-shadow:0 6px 18px rgba(0,0,0,.25);
     }
-    .btn:hover{background:rgba(255,255,255,.06)}
-    .btn.primary{
-      background: rgba(43,116,255,.22);
-      border-color: rgba(43,116,255,.35);
-    }
-    .btn.good{
-      background: rgba(31,170,99,.22);
-      border-color: rgba(31,170,99,.35);
-    }
-    .btn.danger{
-      background: rgba(216,75,75,.18);
-      border-color: rgba(216,75,75,.35);
-    }
-    .btn:disabled{
-      opacity:.5; cursor:not-allowed;
-    }
+    button.secondary{ background:#0f2237; }
+    button.green{ background:var(--btn2); border-color:#1f5b40; }
+    button:disabled{ opacity:.5; cursor:not-allowed; }
 
-    /* Layout */
+    main{
+      max-width:1400px;
+      margin:18px auto;
+      padding:0 18px 40px;
+    }
     .grid{
       display:grid;
-      grid-template-columns: 380px 1fr 420px;
-      gap:16px;
+      grid-template-columns: 420px minmax(420px, 1fr) 420px;
+      gap:18px;
       align-items:start;
-      padding:18px 16px 36px;
-      max-width:1280px;
-      margin:0 auto;
-    }
-    @media (max-width: 1100px){
-      .grid{ grid-template-columns: 1fr; }
     }
 
     .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
-      border:1px solid var(--stroke);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:16px;
+      box-shadow:var(--shadow);
+      backdrop-filter: blur(8px);
     }
-    .card .hd{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--stroke);
-      display:flex; justify-content:space-between; align-items:flex-end; gap:10px;
+    h2{ margin:0 0 10px; }
+    .muted{ color:var(--muted); font-size:12px; }
+    input, textarea, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
     }
-    .card .hd h2{
-      margin:0;
-      font-size:18px;
-      letter-spacing:.2px;
-    }
-    .card .hd .sub{
-      color:var(--muted);
+    textarea{ min-height:110px; resize:vertical; }
+    .row{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+    .row3{ display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px; }
+    .sp{ height:10px; }
+    .topline{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; }
+    .tab{
+      padding:8px 12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.02);
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
       font-size:12px;
-      margin-top:4px;
+      color:#dbe5f0;
     }
-    .card .bd{ padding:14px; }
-    .muted{ color:var(--muted); }
-    .msg{ margin-top:10px; color:var(--muted); font-size:13px; min-height:18px;}
-    .err{ color:#ffb4b4; }
+    .tab.active{ background:rgba(34,197,94,.16); border-color:rgba(34,197,94,.28); }
 
     .kpis{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:10px;
-      margin-bottom:12px;
+      margin-top:10px;
     }
     .kpi{
-      border:1px solid var(--stroke);
+      border:1px solid rgba(255,255,255,.10);
       border-radius:14px;
-      padding:10px;
-      background: rgba(0,0,0,.14);
+      padding:12px;
+      background:rgba(0,0,0,.20);
     }
-    .kpi .v{ font-size:18px; font-weight:800; }
+    .kpi .n{ font-weight:900; font-size:20px; }
     .kpi .l{ color:var(--muted); font-size:11px; margin-top:2px; }
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; }
-    .row > *{ flex:1; min-width:120px; }
-    input, select, textarea{
-      width:100%;
-      padding:10px 10px;
-      border-radius:12px;
-      border:1px solid var(--stroke);
-      background: rgba(0,0,0,.18);
-      color:var(--text);
-      outline:none;
-    }
-    textarea{ min-height:120px; resize:vertical; }
-    label{ font-size:12px; color:var(--muted); display:block; margin:10px 0 6px; }
-
-    .tabs{
-      display:flex; gap:10px; flex-wrap:wrap;
-      padding:10px 14px;
-      border-bottom:1px solid var(--stroke);
-      background: rgba(0,0,0,.12);
-    }
-    .tab{ border-radius:999px; padding:8px 10px; border:1px solid var(--stroke); background: rgba(255,255,255,.03); color:var(--text); cursor:pointer; font-weight:700; font-size:12px;}
-    .tab.active{ background: rgba(31,170,99,.20); border-color: rgba(31,170,99,.35); }
-    .tab.secondary.active{ background: rgba(43,116,255,.20); border-color: rgba(43,116,255,.35); }
-    .tab.ghost{ background: rgba(255,255,255,.02); color:var(--muted); font-weight:600;}
-
-    /* Feed cards */
-    .feed{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-    @media (max-width: 1100px){
-      .feed{ grid-template-columns: 1fr; }
-    }
-    .ticket{
-      border:1px solid var(--stroke);
-      border-radius:16px;
-      padding:12px;
-      background: rgba(0,0,0,.12);
-    }
-    .ticket h3{
-      margin:0 0 6px;
-      font-size:15px;
-      line-height:1.2;
-    }
-    .meta{
-      display:flex; flex-wrap:wrap; gap:8px;
-      color:var(--muted);
-      font-size:12px;
-      margin-bottom:8px;
-    }
-    .badge{
-      display:inline-flex; align-items:center; gap:6px;
-      padding:6px 8px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.03);
-      font-size:12px;
-      color:var(--muted);
-    }
-    .tag{
-      display:inline-flex;
-      padding:6px 8px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.02);
-      color:var(--muted);
-      font-size:12px;
-    }
-    .preview{
-      color:rgba(255,255,255,.82);
-      font-size:13px;
-      line-height:1.35;
-      margin:10px 0;
-      white-space:pre-wrap;
-    }
-    .ticket .actions{
-      display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;
-      margin-top:8px;
-    }
-    .reactions{
-      display:flex; flex-wrap:wrap; gap:8px;
-    }
-    .react{
-      padding:6px 8px;
-      border-radius:999px;
-      border:1px solid var(--stroke);
-      background: rgba(255,255,255,.02);
-      cursor:pointer;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .react:hover{ background: rgba(255,255,255,.04); }
-    .openbtn{
-      padding:8px 10px;
-      border-radius:12px;
-      border:1px solid rgba(43,116,255,.35);
-      background: rgba(43,116,255,.18);
-      color:var(--text);
-      cursor:pointer;
-      font-weight:800;
-    }
-    .openbtn:hover{ background: rgba(43,116,255,.24); }
-
-    /* Detail/comments */
-    .detail h3{ margin:0 0 6px; }
-    .detail .big{ white-space:pre-wrap; color:rgba(255,255,255,.86); font-size:13px; line-height:1.35; }
-    .divider{ border-top:1px solid var(--stroke); margin:12px 0; }
-    .comment{
-      border:1px solid var(--stroke);
-      border-radius:14px;
-      padding:10px;
-      background: rgba(0,0,0,.10);
-      margin-bottom:10px;
-    }
-    .comment .who{ color:var(--muted); font-size:12px; margin-bottom:6px; display:flex; justify-content:space-between; gap:10px;}
-    .comment .body{ white-space:pre-wrap; font-size:13px; color:rgba(255,255,255,.84); }
-
-    /* Auth card */
-    .authgrid{
-      display:grid;
-      grid-template-columns: 1fr;
+    .list{
+      display:flex;
+      flex-direction:column;
       gap:10px;
+      max-height: 62vh;
+      overflow:auto;
+      padding-right:4px;
+    }
+    .item{
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:16px;
+      background:rgba(0,0,0,.20);
+      padding:12px;
+    }
+    .item .t{ font-weight:900; }
+    .item .meta{ color:var(--muted); font-size:12px; margin-top:4px; display:flex; gap:8px; flex-wrap:wrap; }
+    .badge{
+      font-size:11px;
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+    }
+    .btnrow{ display:flex; gap:8px; margin-top:10px; }
+    .danger{ background:#5b1622; }
+
+    .hidden{ display:none !important; }
+
+    /* Mobile */
+    @media (max-width: 1120px){
+      .grid{ grid-template-columns: 1fr; }
+      .list{ max-height: 40vh; }
     }
   </style>
 </head>
-<body>
 
-  <div class="topbar">
-    <div class="wrap">
-      <div class="brand">
-        <div>
-          <h1>FofocaDoGrupo</h1>
-          <small>Fofoca Management • Observability • Compliance • Governança de Tias</small>
-        </div>
-        <div class="rightbar">
-          <span class="pill" id="sessionPill">Não logado</span>
-          <button class="btn danger" id="logoutBtn" style="display:none">Sair</button>
-        </div>
-      </div>
-    </div>
+<body>
+<header>
+  <div>
+    <div class="brand">FofocaDoGrupo</div>
+    <div class="sub">Fofoca Management • Observability • Compliance • Governança de Tias</div>
   </div>
 
-  <div class="grid">
-    <!-- LEFT -->
-    <div class="card" id="leftCard">
-      <div class="hd">
+  <div class="right">
+    <span id="who" class="pill">Não logado</span>
+    <button id="logoutBtn" class="secondary hidden">Sair</button>
+  </div>
+</header>
+
+<main>
+  <!-- AUTH -->
+  <section class="card" id="authCard">
+    <h2>Acesso</h2>
+    <div class="muted">Crie sua conta e vire uma entidade do bairro. (Login sem email real)</div>
+
+    <div class="sp"></div>
+
+    <div id="authModeHint" class="muted">Modo: <b>Login</b></div>
+    <div class="sp"></div>
+
+    <input id="username" placeholder="Usuário (ex: lucas_fofoca)" autocomplete="username"/>
+    <div class="sp"></div>
+
+    <input id="displayName" placeholder="Nome (ex: Lucas)" class="hidden" autocomplete="name"/>
+    <div class="sp hidden" id="spName"></div>
+
+    <input id="password" placeholder="Senha (mín. 6)" type="password" autocomplete="current-password"/>
+    <div class="sp"></div>
+
+    <button id="loginBtn">Entrar</button>
+    <div class="btnrow">
+      <button id="toRegisterBtn" class="green" style="flex:1;">Criar conta</button>
+      <button id="toLoginBtn" class="secondary hidden" style="flex:1;">Voltar para o login</button>
+    </div>
+
+    <div id="authMsg" class="muted" style="margin-top:10px;"></div>
+    <div class="sp"></div>
+    <div class="muted">Dica: seu “email interno” vira <b>usuario@fofoca.local</b> automaticamente.</div>
+  </section>
+
+  <!-- APP -->
+  <section class="grid hidden" id="appGrid">
+    <!-- LEFT: DASH + CREATE -->
+    <section class="card">
+      <div class="topline">
         <div>
-          <h2>Dashboard</h2>
-          <div class="sub" id="titleLine">Título: — • Fofoqueiro(a): —</div>
+          <h2 style="margin:0;">Dashboard</h2>
+          <div class="muted" id="titleLine">Título: —</div>
         </div>
-        <button class="btn primary" id="refreshBtn">Atualizar</button>
+        <button id="refreshBtn">Atualizar</button>
       </div>
+
+      <div class="sp"></div>
 
       <div class="tabs">
-        <button class="tab active" id="tabFeed">Feed (grupo)</button>
-        <button class="tab" id="tabMine">Meu Backlog</button>
-        <button class="tab ghost" id="tabProfile">Perfil</button>
+        <div class="tab active" id="tabFeed">Feed (grupo)</div>
+        <div class="tab" id="tabMine">Meu Backlog</div>
+        <div class="tab" id="tabProfile">Perfil</div>
       </div>
 
-      <div class="bd">
-        <div class="kpis" id="kpis"></div>
-
-        <div class="divider"></div>
-
-        <h3 style="margin:0 0 8px;">Nova ocorrência</h3>
-
-        <label>Título</label>
-        <input id="title" placeholder="Ex: Fulano foi visto com..."/>
-
-        <div class="row">
-          <div>
-            <label>Fonte</label>
-            <input id="source" placeholder="Ex: zelador, grupo da família"/>
-          </div>
-          <div>
-            <label>Status</label>
-            <select id="status">
-              <option value="APURACAO">APURAÇÃO</option>
-              <option value="CONFIRMADO">CONFIRMADO</option>
-              <option value="ARQUIVADO">ARQUIVADO</option>
-            </select>
-          </div>
-        </div>
-
-        <label>Detalhes</label>
-        <textarea id="details" placeholder="Descreva com seriedade corporativa... (use @usuario para mencionar)"></textarea>
-
-        <div class="row">
-          <div>
-            <label>Confiabilidade (0–100)</label>
-            <input id="cred" type="number" min="0" max="100" value="50"/>
-          </div>
-          <div>
-            <label>Tags (vírgula)</label>
-            <input id="tags" placeholder="fonte confiável, ouvi falar, primo do amigo"/>
-          </div>
-        </div>
-
-        <div style="margin-top:12px;" class="row">
-          <button class="btn good" id="createBtn">Registrar ticket</button>
-        </div>
-
-        <div class="msg" id="msg"></div>
-
-        <div class="divider"></div>
-
-        <div id="authCard">
-          <h3 style="margin:0 0 8px;">Acesso</h3>
-          <div class="muted" style="font-size:13px;margin-bottom:10px;">
-            Crie sua conta e vire uma entidade do bairro. (Login sem email real)
-          </div>
-          <div class="authgrid">
-            <input id="u" placeholder="Usuário (ex: lucas_fofoca)"/>
-            <input id="name" placeholder="Nome (ex: Lucas)"/>
-            <input id="p" type="password" placeholder="Senha (min 6)"/>
-          </div>
-          <div class="row" style="margin-top:10px;">
-            <button class="btn primary" id="loginBtn">Entrar</button>
-            <button class="btn good" id="registerBtn">Criar conta</button>
-          </div>
-          <div class="msg err" id="authMsg"></div>
-        </div>
+      <div class="kpis">
+        <div class="kpi"><div class="n" id="kTotal">—</div><div class="l">Tickets totais</div></div>
+        <div class="kpi"><div class="n" id="kConf">—</div><div class="l">CONFIRMADO</div></div>
+        <div class="kpi"><div class="n" id="kApur">—</div><div class="l">APURAÇÃO</div></div>
+        <div class="kpi"><div class="n" id="kArq">—</div><div class="l">ARQUIVADO</div></div>
       </div>
-    </div>
 
-    <!-- CENTER -->
-    <div class="card">
-      <div class="hd">
+      <div class="sp"></div>
+      <hr style="border:0;border-top:1px solid rgba(255,255,255,.08);"/>
+
+      <h3 style="margin:12px 0 8px;">Nova ocorrência</h3>
+
+      <label class="muted">Título</label>
+      <input id="newTitle" placeholder="Ex: Fulano foi visto com..." />
+      <div class="sp"></div>
+
+      <div class="row">
         <div>
-          <h2>Explorar</h2>
-          <div class="sub" id="feedHint">Feed do grupo (todas as fofocas)</div>
+          <label class="muted">Fonte</label>
+          <input id="newSource" placeholder="Ex: zelador, grupo da família" />
         </div>
-        <div class="row" style="margin:0; gap:10px;">
-          <input id="q" placeholder="Pesquisar..." style="min-width:220px"/>
-        </div>
-      </div>
-      <div class="bd">
-        <div class="feed" id="feed"></div>
-        <div class="muted" id="emptyFeed" style="display:none; padding:10px 0;">
-          Nada por aqui ainda. Seja o primeiro a movimentar o compliance 👀
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="card">
-      <div class="hd">
         <div>
-          <h2>Visualização</h2>
-          <div class="sub">Detalhes + colaboração</div>
+          <label class="muted">Status</label>
+          <select id="newStatus">
+            <option value="APURACAO">APURAÇÃO</option>
+            <option value="CONFIRMADO">CONFIRMADO</option>
+            <option value="ARQUIVADO">ARQUIVADO</option>
+          </select>
         </div>
       </div>
-      <div class="bd">
-        <div class="muted" id="detailEmpty">Selecione uma fofoca no feed/backlog para ver detalhes e colaborar.</div>
-        <div id="detail" style="display:none;" class="detail">
-          <h3 id="dTitle"></h3>
+
+      <div class="sp"></div>
+
+      <label class="muted">Detalhes</label>
+      <textarea id="newDetails" placeholder="Descreva com seriedade corporativa... (use @usuario para mencionar)"></textarea>
+
+      <div class="sp"></div>
+      <div class="row">
+        <div>
+          <label class="muted">Confiabilidade (0–100)</label>
+          <input id="newCred" type="number" min="0" max="100" value="50"/>
+        </div>
+        <div>
+          <label class="muted">Tags (vírgula)</label>
+          <input id="newTags" placeholder="fonte confiável, ouvi falar" />
+        </div>
+      </div>
+
+      <div class="sp"></div>
+      <button id="createBtn" class="green" style="width:100%;">Registrar ticket</button>
+      <div id="createMsg" class="muted" style="margin-top:10px;"></div>
+    </section>
+
+    <!-- CENTER: FEED/BACKLOG -->
+    <section class="card">
+      <div class="topline">
+        <div>
+          <h2 style="margin:0;">Explorar</h2>
+          <div class="muted" id="exploreHint">Feed do grupo (todas as fofocas)</div>
+        </div>
+        <input id="search" placeholder="Pesquisar..." style="max-width:320px;"/>
+      </div>
+
+      <div class="sp"></div>
+      <div class="list" id="list"></div>
+      <div id="listMsg" class="muted" style="margin-top:10px;"></div>
+    </section>
+
+    <!-- RIGHT: DETAILS -->
+    <section class="card">
+      <div class="topline">
+        <h2 style="margin:0;">Visualização</h2>
+        <div class="muted">Detalhes + colaboração</div>
+      </div>
+      <div class="sp"></div>
+
+      <div id="detailsEmpty" class="muted">Selecione uma fofoca no feed/backlog para ver detalhes e colaborar.</div>
+
+      <div id="detailsBox" class="hidden">
+        <div class="item">
+          <div class="t" id="dTitle">—</div>
           <div class="meta" id="dMeta"></div>
-          <div class="big" id="dBody"></div>
+          <div class="sp"></div>
+          <div id="dDetails" style="white-space:pre-wrap;"></div>
+          <div class="sp"></div>
+          <div class="meta" id="dTags"></div>
 
-          <div class="divider"></div>
-
+          <div class="sp"></div>
           <div class="row">
-            <button class="btn" id="moveBtn">Mover status</button>
-            <button class="btn danger" id="delBtn">Excluir (só dono)</button>
+            <div>
+              <label class="muted">Mover status</label>
+              <select id="moveStatus">
+                <option value="APURACAO">APURAÇÃO</option>
+                <option value="CONFIRMADO">CONFIRMADO</option>
+                <option value="ARQUIVADO">ARQUIVADO</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:end;">
+              <button id="moveBtn" style="width:100%;">Mover</button>
+            </div>
           </div>
 
-          <div class="divider"></div>
-
-          <h3 style="margin:0 0 10px;">Comentários</h3>
-          <div id="comments"></div>
-
-          <label>Adicionar comentário</label>
-          <textarea id="cBody" placeholder="Ex: isso procede? @fulano confirma?"></textarea>
-          <div class="row" style="margin-top:10px;">
-            <button class="btn primary" id="commentBtn">Comentar</button>
+          <div class="sp"></div>
+          <div class="btnrow">
+            <button id="delBtn" class="danger" style="flex:1;">Excluir (meu)</button>
           </div>
-          <div class="msg" id="cMsg"></div>
+
+          <div id="dMsg" class="muted" style="margin-top:10px;"></div>
         </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </section>
+</main>
 
-  <!-- Supabase v2 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script>
-    // ====== CONFIG (troque pelos seus) ======
-    const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.supabase.co";
-    const SUPABASE_ANON_KEY = "COLE_SUA_ANON_KEY_AQUI";
-    // ======================================
+<!-- Supabase v2 UMD -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+  // ======= CONFIG (cole seus valores aqui) =======
+  const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.supabase.co";
+  const SUPABASE_ANON_KEY = "COLE_SUA_ANON_KEY_AQUI";
+  // ==============================================
 
-    // state
-    let SESSION = null;
-    let ME = null;
-    let MODE = "feed"; // feed | mine | profile
-    let SELECTED = null; // selected gossip row
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const REACTIONS = [
-      {key:"like", label:"👍"},
-      {key:"lol", label:"😂"},
-      {key:"shock", label:"😱"},
-      {key:"tea", label:"🍵"},
-      {key:"fire", label:"🔥"},
-    ];
+  // UI refs
+  const authCard = document.getElementById('authCard');
+  const appGrid  = document.getElementById('appGrid');
+  const who      = document.getElementById('who');
+  const logoutBtn= document.getElementById('logoutBtn');
 
-    // helpers
-    const $ = (id)=>document.getElementById(id);
-    const cleanUser = (u)=> (u||"").trim().toLowerCase().replace(/\s+/g,"");
-    const usernameToEmail = (u)=> cleanUser(u) + "@fofoca.fake";
+  const usernameEl   = document.getElementById('username');
+  const displayNameEl= document.getElementById('displayName');
+  const spName       = document.getElementById('spName');
+  const passwordEl   = document.getElementById('password');
+  const authMsg      = document.getElementById('authMsg');
+  const authModeHint = document.getElementById('authModeHint');
 
-    function setMsg(el, txt, isErr=false){
-      el.textContent = txt || "";
-      el.classList.toggle("err", !!isErr);
+  const loginBtn     = document.getElementById('loginBtn');
+  const toRegisterBtn= document.getElementById('toRegisterBtn');
+  const toLoginBtn   = document.getElementById('toLoginBtn');
+
+  const refreshBtn   = document.getElementById('refreshBtn');
+  const createBtn    = document.getElementById('createBtn');
+  const createMsg    = document.getElementById('createMsg');
+
+  const tabFeed      = document.getElementById('tabFeed');
+  const tabMine      = document.getElementById('tabMine');
+  const tabProfile   = document.getElementById('tabProfile');
+  const exploreHint  = document.getElementById('exploreHint');
+
+  const listEl       = document.getElementById('list');
+  const listMsg      = document.getElementById('listMsg');
+  const searchEl     = document.getElementById('search');
+
+  const kTotal = document.getElementById('kTotal');
+  const kConf  = document.getElementById('kConf');
+  const kApur  = document.getElementById('kApur');
+  const kArq   = document.getElementById('kArq');
+
+  const titleLine = document.getElementById('titleLine');
+
+  const newTitle  = document.getElementById('newTitle');
+  const newSource = document.getElementById('newSource');
+  const newStatus = document.getElementById('newStatus');
+  const newDetails= document.getElementById('newDetails');
+  const newCred   = document.getElementById('newCred');
+  const newTags   = document.getElementById('newTags');
+
+  const detailsEmpty = document.getElementById('detailsEmpty');
+  const detailsBox   = document.getElementById('detailsBox');
+  const dTitle       = document.getElementById('dTitle');
+  const dMeta        = document.getElementById('dMeta');
+  const dDetails     = document.getElementById('dDetails');
+  const dTags        = document.getElementById('dTags');
+  const moveStatus   = document.getElementById('moveStatus');
+  const moveBtn      = document.getElementById('moveBtn');
+  const delBtn       = document.getElementById('delBtn');
+  const dMsg         = document.getElementById('dMsg');
+
+  let mode = 'feed'; // feed | mine | profile
+  let selected = null;
+
+  function showAuth(){
+    authCard.classList.remove('hidden');
+    appGrid.classList.add('hidden');
+    logoutBtn.classList.add('hidden');
+    who.textContent = 'Não logado';
+  }
+  function showApp(label){
+    authCard.classList.add('hidden');
+    appGrid.classList.remove('hidden');
+    logoutBtn.classList.remove('hidden');
+    who.textContent = label || 'Logado';
+  }
+
+  function normUsername(u){
+    return (u||'').trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
+  }
+
+  function makeEmail(username){
+    return `${username}@fofoca.local`;
+  }
+
+  function setAuthMode(isRegister){
+    if(isRegister){
+      authModeHint.innerHTML = 'Modo: <b>Criar conta</b>';
+      displayNameEl.classList.remove('hidden');
+      spName.classList.remove('hidden');
+      toLoginBtn.classList.remove('hidden');
+      toRegisterBtn.classList.add('hidden');
+      loginBtn.textContent = 'Criar e entrar';
+    }else{
+      authModeHint.innerHTML = 'Modo: <b>Login</b>';
+      displayNameEl.classList.add('hidden');
+      spName.classList.add('hidden');
+      toLoginBtn.classList.add('hidden');
+      toRegisterBtn.classList.remove('hidden');
+      loginBtn.textContent = 'Entrar';
+    }
+    authMsg.textContent = '';
+  }
+
+  toRegisterBtn.onclick = () => setAuthMode(true);
+  toLoginBtn.onclick = () => setAuthMode(false);
+
+  async function ensureProfile(user, username, displayName){
+    // tenta buscar
+    const { data: prof, error: e1 } = await sb
+      .from('profiles')
+      .select('id, username, display_name')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if(e1 && e1.code !== 'PGRST116'){ /* ignore not found */ }
+
+    if(prof) return prof;
+
+    const payload = {
+      id: user.id,
+      username,
+      display_name: displayName || username
+    };
+
+    const { data, error } = await sb.from('profiles').insert(payload).select().single();
+    if(error) throw error;
+    return data;
+  }
+
+  async function doLoginOrRegister(){
+    authMsg.textContent = '';
+
+    const rawU = usernameEl.value;
+    const username = normUsername(rawU);
+    const password = passwordEl.value || '';
+    const displayName = displayNameEl.value.trim();
+
+    if(!username || username.length < 3){
+      authMsg.textContent = 'Usuário inválido (mín. 3). Use letras/números/_';
+      return;
+    }
+    if(password.length < 6){
+      authMsg.textContent = 'Senha muito curta (mín. 6).';
+      return;
     }
 
-    function shortPreview(details){
-      const s = (details||"").trim();
-      const lines = s.split("\n").slice(0,2).join("\n");
-      return (lines.length < s.length) ? (lines + "…") : lines;
-    }
+    const email = makeEmail(username);
 
-    function titleFromCount(n){
-      if(n >= 50) return "Vovózinha do bairro 🧶";
-      if(n >= 25) return "Tia do Zap Premium 📲";
-      if(n >= 10) return "Fofoqueiro(a) Sênior ☕";
-      if(n >= 3)  return "Fofoqueiro(a) em treinamento 👀";
-      return "Aprendiz de Fofoqueiro(a) 🌱";
-    }
+    try{
+      if(loginBtn.textContent.includes('Criar')){
+        // SIGN UP
+        const { data: su, error: eSU } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: { username, display_name: displayName || username } }
+        });
+        if(eSU) throw eSU;
 
-    function badgesFromCount(n){
-      const b = [];
-      if(n >= 1) b.push("Primeira fofoca ✅");
-      if(n >= 3) b.push("Dedinho coçando 👆");
-      if(n >= 10) b.push("Radar ligado 📡");
-      if(n >= 25) b.push("Zap dos bastidores 📲");
-      if(n >= 50) b.push("Memória coletiva 🧠");
-      return b;
-    }
+        // Se email confirmation estiver OFF, já vem session.
+        // Se vier sem session, tenta login em seguida.
+        if(!su.session){
+          const { data: si2, error: eSI2 } = await sb.auth.signInWithPassword({ email, password });
+          if(eSI2) throw eSI2;
+        }
 
-    async function loadSession(){
-      const { data } = await sb.auth.getSession();
-      SESSION = data.session || null;
-      if(SESSION){
-        $("logoutBtn").style.display = "inline-block";
-        $("authCard").style.display = "none";
-        $("sessionPill").textContent = "Logado";
       }else{
-        $("logoutBtn").style.display = "none";
-        $("authCard").style.display = "block";
-        $("sessionPill").textContent = "Não logado";
+        // SIGN IN
+        const { error: eSI } = await sb.auth.signInWithPassword({ email, password });
+        if(eSI) throw eSI;
       }
+
+      // sessão atual
+      const { data: ses } = await sb.auth.getSession();
+      const user = ses?.session?.user;
+      if(!user) throw new Error('Não consegui obter sessão. Verifique o Email Confirm OFF.');
+
+      const prof = await ensureProfile(user, username, displayName || username);
+      showApp(`Logado como: ${prof.display_name} (@${prof.username})`);
+      setAuthMode(false);
+      await refresh();
+
+    }catch(err){
+      authMsg.textContent = (err?.message || 'Erro de autenticação');
     }
+  }
 
-    async function ensureProfile(username, displayName){
-      const uid = SESSION.user.id;
+  loginBtn.onclick = doLoginOrRegister;
 
-      const { data: existing, error: e1 } = await sb
-        .from("profiles")
-        .select("*")
-        .eq("id", uid)
-        .maybeSingle();
+  logoutBtn.onclick = async () => {
+    await sb.auth.signOut();
+    showAuth();
+  };
 
-      if(e1) throw e1;
+  function setActiveTab(el){
+    [tabFeed, tabMine, tabProfile].forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+  }
 
-      if(existing) return existing;
+  tabFeed.onclick = async () => { mode='feed'; setActiveTab(tabFeed); exploreHint.textContent='Feed do grupo (todas as fofocas)'; await refresh(); };
+  tabMine.onclick = async () => { mode='mine'; setActiveTab(tabMine); exploreHint.textContent='Meu Backlog (só minhas fofocas)'; await refresh(); };
+  tabProfile.onclick = async () => { mode='profile'; setActiveTab(tabProfile); exploreHint.textContent='Perfil (em breve: medalhas + títulos)'; await refresh(); };
 
-      const payload = {
-        id: uid,
-        username: cleanUser(username),
-        display_name: (displayName||username||"Usuário").trim()
-      };
+  refreshBtn.onclick = refresh;
 
-      const { data: inserted, error: e2 } = await sb
-        .from("profiles")
-        .insert(payload)
-        .select("*")
-        .single();
-
-      if(e2) throw e2;
-      return inserted;
-    }
-
-    async function loadMe(){
-      if(!SESSION) { ME = null; $("titleLine").textContent = "Título: — • Fofoqueiro(a): —"; return; }
-
-      const uid = SESSION.user.id;
-
-      const { data: prof, error: e1 } = await sb
-        .from("profiles").select("*")
-        .eq("id", uid).single();
-
-      if(e1) throw e1;
-
-      const { count, error: e2 } = await sb
-        .from("gossips")
-        .select("*", { count: "exact", head: true })
-        .eq("created_by", uid);
-
-      if(e2) throw e2;
-
-      const total = count || 0;
-      ME = {
-        ...prof,
-        total_gossips: total,
-        title: titleFromCount(total),
-        badges: badgesFromCount(total)
-      };
-
-      $("titleLine").textContent = `Título: ${ME.title} • Fofoqueiro(a): ${ME.display_name} (@${ME.username})`;
-      $("msg").innerHTML = `Suas conquistas: ${
-        ME.badges.length ? ME.badges.map(x=>`<span class="tag">${x}</span>`).join(" ") : "<span class='muted'>Nenhuma ainda…</span>"
-      }`;
-    }
-
-    async function loadKpis(){
-      if(!SESSION){
-        $("kpis").innerHTML = `
-          <div class="kpi"><div class="v">—</div><div class="l">Tickets totais</div></div>
-          <div class="kpi"><div class="v">—</div><div class="l">CONFIRMADO</div></div>
-          <div class="kpi"><div class="v">—</div><div class="l">APURAÇÃO</div></div>
-          <div class="kpi"><div class="v">—</div><div class="l">ARQUIVADO</div></div>
-        `;
+  createBtn.onclick = async () => {
+    createMsg.textContent = '';
+    try{
+      const { data: ses } = await sb.auth.getSession();
+      const user = ses?.session?.user;
+      if(!user){
+        createMsg.textContent = 'Você precisa estar logado para registrar.';
         return;
       }
 
-      const base = (MODE === "mine") ? sb.from("gossips").select("status, credibility", { count: "exact" }).eq("created_by", SESSION.user.id)
-                                     : sb.from("gossips").select("status, credibility", { count: "exact" });
+      const title = newTitle.value.trim();
+      const source = newSource.value.trim();
+      const details = newDetails.value.trim();
+      const status = newStatus.value;
+      const credibility = Math.max(0, Math.min(100, parseInt(newCred.value || '50', 10)));
+      const tags = (newTags.value || '')
+        .split(',')
+        .map(s=>s.trim())
+        .filter(Boolean);
 
-      const { data, error, count } = await base;
+      if(!title || !source || !details){
+        createMsg.textContent = 'Preencha Título, Fonte e Detalhes.';
+        return;
+      }
+
+      const payload = {
+        title, source, details, status,
+        credibility,
+        tags,
+        created_by: user.id
+      };
+
+      const { error } = await sb.from('gossips').insert(payload);
       if(error) throw error;
 
-      const by = { APURACAO:0, CONFIRMADO:0, ARQUIVADO:0 };
-      let sum = 0;
-      (data||[]).forEach(x=>{
-        by[x.status] = (by[x.status]||0) + 1;
-        sum += (x.credibility || 0);
-      });
-      const total = count || 0;
-      const avg = total ? (sum/total) : 0;
+      newTitle.value=''; newSource.value=''; newDetails.value=''; newTags.value=''; newCred.value='50'; newStatus.value='APURACAO';
+      createMsg.textContent = 'Ticket registrado com excelência operacional. ✅';
+      await refresh();
 
-      $("kpis").innerHTML = `
-        <div class="kpi"><div class="v">${total}</div><div class="l">Tickets totais</div></div>
-        <div class="kpi"><div class="v">${by.CONFIRMADO}</div><div class="l">CONFIRMADO</div></div>
-        <div class="kpi"><div class="v">${by.APURACAO}</div><div class="l">APURAÇÃO</div></div>
-        <div class="kpi"><div class="v">${avg.toFixed(1)}</div><div class="l">Credibilidade média</div></div>
-      `;
+    }catch(err){
+      createMsg.textContent = (err?.message || 'Erro ao registrar');
     }
+  };
 
-    function ticketHTML(g){
-      const tags = (g.tags || []).slice(0,3).map(t=>`<span class="tag">${t}</span>`).join(" ");
-      const preview = shortPreview(g.details);
-      const who = g.author_display_name ? `${g.author_display_name} (@${g.author_username})` : (g.author_username ? `@${g.author_username}` : "—");
-      const rs = g.reactions || {};
-      const reactionPills = REACTIONS.map(r=>{
-        const n = rs[r.key] || 0;
-        return `<button class="react" onclick="reactTo('${g.id}','${r.key}')" title="Reagir">${r.label} ${n}</button>`;
-      }).join("");
+  searchEl.oninput = () => renderList(window.__lastRows || []);
 
-      return `
-        <div class="ticket">
-          <h3>${escapeHTML(g.title)}</h3>
-          <div class="meta">
-            <span class="badge">${g.status}</span>
-            <span class="badge">Cred ${Number(g.credibility||0)}</span>
-            <span class="badge">Por: ${escapeHTML(who)}</span>
-          </div>
-          <div class="preview">${escapeHTML(preview)}</div>
-          <div class="meta">
-            <span class="badge">Fonte: ${escapeHTML(g.source||"—")}</span>
-            <span class="badge">💬 ${Number(g.comment_count||0)}</span>
-          </div>
-          <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">${tags}</div>
-          <div class="actions">
-            <div class="reactions">${reactionPills}</div>
-            <button class="openbtn" onclick="openGossip('${g.id}')">Abrir</button>
-          </div>
+  function setSelected(row){
+    selected = row;
+    detailsEmpty.classList.add('hidden');
+    detailsBox.classList.remove('hidden');
+    dMsg.textContent='';
+
+    dTitle.textContent = row.title;
+    dDetails.textContent = row.details;
+
+    const meta = [];
+    meta.push(`<span class="badge">${row.status}</span>`);
+    meta.push(`<span class="badge">Cred ${row.credibility}</span>`);
+    meta.push(`<span class="badge">Por: ${row.author_display_name || ‘—’} (@${row.author_username || ‘—’})</span>`);
+    meta.push(`<span class="badge">${new Date(row.created_at).toLocaleString()}</span>`);
+    dMeta.innerHTML = meta.join(' ');
+
+    dTags.innerHTML = (row.tags || []).map(t=>`<span class="badge">${t}</span>`).join(' ');
+    moveStatus.value = row.status;
+
+    // habilita excluir/mover apenas se for dono (server RLS também confere)
+    delBtn.disabled = !row.is_mine;
+    moveBtn.disabled = !row.is_mine;
+  }
+
+  moveBtn.onclick = async () => {
+    if(!selected) return;
+    dMsg.textContent='';
+    try{
+      const to = moveStatus.value;
+      const { error } = await sb.from('gossips').update({ status: to }).eq('id', selected.id);
+      if(error) throw error;
+      dMsg.textContent='Status atualizado.';
+      await refresh(true);
+    }catch(err){
+      dMsg.textContent = err?.message || 'Erro ao mover';
+    }
+  };
+
+  delBtn.onclick = async () => {
+    if(!selected) return;
+    dMsg.textContent='';
+    try{
+      const { error } = await sb.from('gossips').delete().eq('id', selected.id);
+      if(error) throw error;
+      dMsg.textContent='Excluído.';
+      selected = null;
+      detailsBox.classList.add('hidden');
+      detailsEmpty.classList.remove('hidden');
+      await refresh();
+    }catch(err){
+      dMsg.textContent = err?.message || 'Erro ao excluir';
+    }
+  };
+
+  function renderList(rows){
+    const q = (searchEl.value || '').toLowerCase().trim();
+    const filtered = !q ? rows : rows.filter(r =>
+      (r.title||'').toLowerCase().includes(q) ||
+      (r.details||'').toLowerCase().includes(q) ||
+      (r.source||'').toLowerCase().includes(q) ||
+      (r.author_username||'').toLowerCase().includes(q)
+    );
+
+    listEl.innerHTML = '';
+    if(filtered.length === 0){
+      listMsg.textContent = 'Nada por aqui ainda.';
+      return;
+    }
+    listMsg.textContent = '';
+
+    for(const r of filtered){
+      const div = document.createElement('div');
+      div.className='item';
+
+      const preview = (r.details || '').split('\n').slice(0,2).join('\n');
+      const tags = (r.tags || []).slice(0,3).map(t=>`<span class="badge">${t}</span>`).join(' ');
+
+      div.innerHTML = `
+        <div class="t">${escapeHtml(r.title)}</div>
+        <div class="meta">
+          <span class="badge">${r.status}</span>
+          <span class="badge">Cred ${r.credibility}</span>
+          <span class="badge">Por: ${escapeHtml(r.author_display_name || '—')} (@${escapeHtml(r.author_username || '—')})</span>
+          <span class="badge">💬 ${r.comment_count || 0}</span>
+        </div>
+        <div class="sp"></div>
+        <div style="white-space:pre-wrap; color:#cdd6e1; font-size:13px;">${escapeHtml(preview)}${(r.details||'').includes('\n') ? '…' : ''}</div>
+        <div class="sp"></div>
+        <div class="meta">${tags}</div>
+        <div class="sp"></div>
+        <div class="btnrow">
+          <button class="secondary" data-open="1">Abrir</button>
         </div>
       `;
+
+      div.querySelector('[data-open="1"]').onclick = () => setSelected(r);
+      listEl.appendChild(div);
+    }
+  }
+
+  function escapeHtml(s){
+    return (s||'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  async function refresh(keepSelected=false){
+    listMsg.textContent = '';
+    createMsg.textContent = '';
+
+    const { data: ses } = await sb.auth.getSession();
+    const user = ses?.session?.user;
+    if(!user){
+      showAuth();
+      return;
     }
 
-    function escapeHTML(s){
-      return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    // carrega profile
+    const { data: prof } = await sb.from('profiles').select('username, display_name').eq('id', user.id).maybeSingle();
+    showApp(`Logado como: ${prof?.display_name || '—'} (@${prof?.username || '—'})`);
+    titleLine.textContent = `Título: Aprendiz de Fofoqueiro(a) 🪴 • Fofoqueiro(a): ${prof?.display_name || '—'} (@${prof?.username || '—'})`;
+
+    // query feed/backlog
+    let q = sb.from('gossip_cards').select('*').order('created_at', { ascending:false }).limit(50);
+
+    if(mode === 'mine'){
+      q = q.eq('created_by', user.id);
     }
 
-    async function fetchFeed(){
-      const q = $("q").value.trim();
-
-      let query = sb.from("gossip_cards")
-        .select("*")
-        .order("created_at", { ascending:false })
-        .limit(50);
-
-      if(MODE === "mine" && SESSION){
-        query = query.eq("created_by", SESSION.user.id);
-      }
-
-      if(q){
-        // pesquisa simples por título/detalhes
-        // (ilike em duas colunas)
-        query = query.or(`title.ilike.%${q}%,details.ilike.%${q}%`);
-      }
-
-      const { data, error } = await query;
-      if(error) throw error;
-      return data || [];
+    const { data: rows, error } = await q;
+    if(error){
+      listMsg.textContent = error.message || 'Erro ao carregar feed';
+      return;
     }
 
-    async function refreshAll(){
-      try{
-        setMsg($("authMsg"), "");
-        setMsg($("msg"), "");
-        setMsg($("cMsg"), "");
+    // marca se é do usuário
+    const rows2 = (rows || []).map(r => ({...r, is_mine: (r.created_by === user.id)}));
+    window.__lastRows = rows2;
 
-        await loadSession();
+    // KPIs (simples)
+    const total = rows2.length;
+    const conf  = rows2.filter(r=>r.status==='CONFIRMADO').length;
+    const apur  = rows2.filter(r=>r.status==='APURACAO').length;
+    const arq   = rows2.filter(r=>r.status==='ARQUIVADO').length;
+    kTotal.textContent = total;
+    kConf.textContent = conf;
+    kApur.textContent = apur;
+    kArq.textContent = arq;
 
-        if(!SESSION){
-          $("feed").innerHTML = "";
-          $("emptyFeed").style.display = "none";
-          $("detail").style.display = "none";
-          $("detailEmpty").style.display = "block";
-          await loadKpis();
-          return;
-        }
+    renderList(rows2);
 
-        await loadMe();
-        await loadKpis();
+    if(keepSelected && selected){
+      const again = rows2.find(r=>r.id === selected.id);
+      if(again) setSelected(again);
+    }
+  }
 
-        const items = await fetchFeed();
-        $("feed").innerHTML = items.map(ticketHTML).join("");
-        $("emptyFeed").style.display = items.length ? "none" : "block";
+  // Startup: decide se mostra login ou app
+  (async () => {
+    setAuthMode(false);
 
-        // se tinha selecionado algo, reabrir
-        if(SELECTED){
-          const found = items.find(x=>x.id === SELECTED.id);
-          if(found) await openGossip(found.id);
-        }
-
-      }catch(e){
-        console.error(e);
-        setMsg($("msg"), (e && e.message) ? e.message : String(e), true);
-      }
+    const { data: ses } = await sb.auth.getSession();
+    if(ses?.session?.user){
+      await refresh();
+    }else{
+      showAuth();
     }
 
-    async function createTicket(){
-      try{
-        if(!SESSION){
-          setMsg($("msg"), "Você precisa estar logado para registrar ticket.", true);
-          return;
-        }
-
-        const title = $("title").value.trim();
-        const source = $("source").value.trim() || "anônimo corporativo";
-        const details = $("details").value.trim();
-        const credibility = Number($("cred").value || 0);
-        const status = $("status").value;
-        const tags = ($("tags").value || "").split(",").map(s=>s.trim()).filter(Boolean);
-
-        if(title.length < 3 || details.length < 3){
-          setMsg($("msg"), "Preenche título e detalhes, Compliance agradece.", true);
-          return;
-        }
-
-        const payload = {
-          created_by: SESSION.user.id,
-          title, source, details, credibility,
-          status,
-          tags
-        };
-
-        const { error } = await sb.from("gossips").insert(payload);
-        if(error) throw error;
-
-        $("title").value = "";
-        $("source").value = "";
-        $("details").value = "";
-        $("tags").value = "";
-        $("cred").value = "50";
-
-        setMsg($("msg"), "Ticket registrado com excelência operacional.");
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("msg"), e.message || String(e), true);
-      }
-    }
-
-    async function openGossip(id){
-      try{
-        const { data, error } = await sb.from("gossip_cards").select("*").eq("id", id).single();
-        if(error) throw error;
-        SELECTED = data;
-
-        $("detailEmpty").style.display = "none";
-        $("detail").style.display = "block";
-
-        $("dTitle").textContent = data.title;
-
-        const who = data.author_display_name ? `${data.author_display_name} (@${data.author_username})` : (data.author_username ? `@${data.author_username}` : "—");
-        $("dMeta").innerHTML = `
-          <span class="badge">${data.status}</span>
-          <span class="badge">Cred ${Number(data.credibility||0)}</span>
-          <span class="badge">Por: ${escapeHTML(who)}</span>
-          <span class="badge">Fonte: ${escapeHTML(data.source||"—")}</span>
-        `;
-
-        $("dBody").textContent = data.details || "";
-
-        // permissão de excluir (só dono)
-        const canDel = SESSION && data.created_by === SESSION.user.id;
-        $("delBtn").disabled = !canDel;
-
-        await loadComments();
-      }catch(e){
-        console.error(e);
-        setMsg($("msg"), e.message || String(e), true);
-      }
-    }
-
-    async function loadComments(){
-      if(!SELECTED) return;
-      const { data, error } = await sb
-        .from("comments")
-        .select("id, created_at, body, user_id, profiles(username, display_name)")
-        .eq("gossip_id", SELECTED.id)
-        .order("created_at", { ascending:true });
-
-      if(error) throw error;
-
-      const rows = data || [];
-      $("comments").innerHTML = rows.map(c=>{
-        const p = c.profiles || {};
-        const who = p.display_name ? `${p.display_name} (@${p.username})` : (p.username ? `@${p.username}` : c.user_id);
-        return `
-          <div class="comment">
-            <div class="who">
-              <span>${escapeHTML(who)}</span>
-              <span class="muted">${new Date(c.created_at).toLocaleString()}</span>
-            </div>
-            <div class="body">${escapeHTML(c.body)}</div>
-          </div>
-        `;
-      }).join("") || `<div class="muted">Sem comentários ainda. Comece a auditoria social 😄</div>`;
-    }
-
-    async function addComment(){
-      try{
-        if(!SESSION || !SELECTED){
-          setMsg($("cMsg"), "Você precisa estar logado e com uma fofoca selecionada.", true);
-          return;
-        }
-        const body = $("cBody").value.trim();
-        if(body.length < 2){
-          setMsg($("cMsg"), "Escreve um comentário de verdade 😅", true);
-          return;
-        }
-
-        const { error } = await sb.from("comments").insert({
-          gossip_id: SELECTED.id,
-          user_id: SESSION.user.id,
-          body
-        });
-        if(error) throw error;
-
-        $("cBody").value = "";
-        setMsg($("cMsg"), "Comentário publicado.");
-        await openGossip(SELECTED.id);
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("cMsg"), e.message || String(e), true);
-      }
-    }
-
-    async function reactTo(gossipId, reaction){
-      try{
-        if(!SESSION){
-          setMsg($("msg"), "Faça login para reagir.", true);
-          return;
-        }
-        // toggle: se existe, remove; se não, cria
-        const { data: existing, error: e1 } = await sb
-          .from("reactions")
-          .select("id")
-          .eq("gossip_id", gossipId)
-          .eq("user_id", SESSION.user.id)
-          .eq("reaction", reaction)
-          .maybeSingle();
-
-        if(e1) throw e1;
-
-        if(existing){
-          const { error: e2 } = await sb.from("reactions").delete().eq("id", existing.id);
-          if(e2) throw e2;
-        }else{
-          const { error: e3 } = await sb.from("reactions").insert({
-            gossip_id: gossipId,
-            user_id: SESSION.user.id,
-            reaction
-          });
-          if(e3) throw e3;
-        }
-
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("msg"), e.message || String(e), true);
-      }
-    }
-
-    async function moveStatus(){
-      try{
-        if(!SESSION || !SELECTED){
-          setMsg($("msg"), "Selecione uma fofoca primeiro.", true);
-          return;
-        }
-        // dropdown simples via prompt (sem modal para não complicar)
-        const opts = ["APURACAO","CONFIRMADO","ARQUIVADO"];
-        const next = prompt("Mover para qual status?\n" + opts.join(" | "), SELECTED.status);
-        if(!next) return;
-
-        const n = next.trim().toUpperCase();
-        if(!opts.includes(n)){
-          setMsg($("msg"), "Status inválido. Use: " + opts.join(", "), true);
-          return;
-        }
-
-        // Só dono pode editar (por policy). Se você quiser que qualquer um possa mover,
-        // a policy no Supabase precisa permitir update geral.
-        const { error } = await sb.from("gossips").update({ status: n }).eq("id", SELECTED.id);
-        if(error) throw error;
-
-        await openGossip(SELECTED.id);
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("msg"), e.message || String(e), true);
-      }
-    }
-
-    async function deleteGossip(){
-      try{
-        if(!SESSION || !SELECTED){
-          setMsg($("msg"), "Selecione uma fofoca primeiro.", true);
-          return;
-        }
-        if(!confirm("Excluir esse ticket de fofoca? Isso vai contra a governança de memória coletiva.")) return;
-
-        const { error } = await sb.from("gossips").delete().eq("id", SELECTED.id);
-        if(error) throw error;
-
-        SELECTED = null;
-        $("detail").style.display = "none";
-        $("detailEmpty").style.display = "block";
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("msg"), e.message || String(e), true);
-      }
-    }
-
-    async function register(){
-      try{
-        setMsg($("authMsg"), "");
-        const username = cleanUser($("u").value);
-        const displayName = ($("name").value || username).trim();
-        const password = $("p").value;
-
-        if(username.length < 3) { setMsg($("authMsg"), "Usuário muito curto.", true); return; }
-        if(password.length < 6) { setMsg($("authMsg"), "Senha precisa ter no mínimo 6.", true); return; }
-
-        const email = usernameToEmail(username);
-
-        const { data, error } = await sb.auth.signUp({ email, password });
-        if(error) throw error;
-
-        // pega sessão após signup
-        const { data: sdata } = await sb.auth.getSession();
-        SESSION = sdata.session;
-
-        // cria profile (se não existir)
-        await ensureProfile(username, displayName);
-
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("authMsg"), e.message || String(e), true);
-      }
-    }
-
-    async function login(){
-      try{
-        setMsg($("authMsg"), "");
-        const username = cleanUser($("u").value);
-        const password = $("p").value;
-
-        if(username.length < 3) { setMsg($("authMsg"), "Usuário inválido.", true); return; }
-        if(password.length < 1) { setMsg($("authMsg"), "Digite a senha.", true); return; }
-
-        const email = usernameToEmail(username);
-
-        const { error } = await sb.auth.signInWithPassword({ email, password });
-        if(error) throw error;
-
-        await refreshAll();
-      }catch(e){
-        console.error(e);
-        setMsg($("authMsg"), e.message || String(e), true);
-      }
-    }
-
-    async function logout(){
-      await sb.auth.signOut();
-      SESSION = null; ME = null; SELECTED = null;
-      $("detail").style.display = "none";
-      $("detailEmpty").style.display = "block";
-      await refreshAll();
-    }
-
-    function setMode(m){
-      MODE = m;
-      $("tabFeed").classList.toggle("active", m==="feed");
-      $("tabMine").classList.toggle("active", m==="mine");
-      $("tabProfile").classList.toggle("active", m==="profile");
-
-      $("feedHint").textContent =
-        m==="feed" ? "Feed do grupo (todas as fofocas)" :
-        m==="mine" ? "Seu Backlog (somente suas fofocas)" :
-        "Perfil (em breve: cards + medalhas + histórico)";
-
-      refreshAll();
-    }
-
-    // wire UI
-    $("createBtn").addEventListener("click", createTicket);
-    $("refreshBtn").addEventListener("click", refreshAll);
-    $("commentBtn").addEventListener("click", addComment);
-    $("moveBtn").addEventListener("click", moveStatus);
-    $("delBtn").addEventListener("click", deleteGossip);
-    $("loginBtn").addEventListener("click", login);
-    $("registerBtn").addEventListener("click", register);
-    $("logoutBtn").addEventListener("click", logout);
-
-    $("q").addEventListener("keydown", (e)=>{ if(e.key==="Enter") refreshAll(); });
-
-    $("tabFeed").addEventListener("click", ()=>setMode("feed"));
-    $("tabMine").addEventListener("click", ()=>setMode("mine"));
-    $("tabProfile").addEventListener("click", ()=>setMode("profile"));
-
-    // global funcs for onclick in HTML strings
-    window.openGossip = openGossip;
-    window.reactTo = reactTo;
-
-    // realtime-ish: refaz quando auth muda
-    sb.auth.onAuthStateChange(async ()=>{
-      await refreshAll();
+    sb.auth.onAuthStateChange(async (event, session) => {
+      if(session?.user) await refresh();
+      else showAuth();
     });
-
-    // start
-    refreshAll();
-  </script>
+  })();
+</script>
 </body>
 </html>
