@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>GossipCRM — Enterprise Fofoca Management</title>
+  <title>FofocaDoGrupo — Fofoca Management</title>
   <style>
     :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
     body { margin: 0; background: #0b0f14; color: #e6edf3; }
@@ -63,8 +63,8 @@
 <body>
 <header>
   <div>
-    <div class="brand">GossipCRM</div>
-    <div class="tagline">Enterprise Fofoca Management • Observability • Compliance • Governança de Tias</div>
+    <div class="brand">FofocaDoGrupo</div>
+    <div class="tagline">Fofoca Management • Observability • Compliance • Governança de Tias</div>
   </div>
   <div class="spacer"></div>
   <div class="topright">
@@ -92,7 +92,7 @@
       <div style="height:10px"></div>
       <input id="r_name" placeholder="Nome (ex: Fofoqueiro)" autocomplete="name"/>
       <div style="height:10px"></div>
-      <input id="r_p" placeholder="Senha" type="password" autocomplete="new-password"/>
+      <input id="r_p" placeholder="Senha (mín. 6)" type="password" autocomplete="new-password"/>
     </div>
 
     <div style="height:10px"></div>
@@ -108,7 +108,7 @@
 
     <div class="hr"></div>
     <div class="muted">
-      Dica: seu “email” interno vira <b>usuario@fofoca.local</b> automaticamente.
+      Compartilhe todas as fofocas sem moderação
     </div>
   </section>
 
@@ -262,12 +262,13 @@
   // ======= CONFIG =======
   const SUPABASE_URL = "https://vguiwuiwgiuhtoifgjin.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZndWl3dWl3Z2l1aHRvaWZnamluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2MzkwMjEsImV4cCI6MjA4NjIxNTAyMX0.EIGcLHCx0cYCAdobpAklR2MuKxpI7VQvcMIpYww3GMg";
+
   if (!window.supabase || !window.supabase.createClient) {
     throw new Error("Supabase JS não carregou. Verifique se o <script src='@supabase/supabase-js@2'> está antes do seu script.");
   }
-  
-  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  // Client único do Supabase (use sb.* em TODO lugar)
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   // ======= STATE =======
   let session = null;
@@ -345,7 +346,6 @@
   }
 
   function showDetailArea(){
-    // se estiver no perfil, esconde detalhe
     if(mode === "profile"){
       showDetail(false);
       showProfile(true);
@@ -356,21 +356,28 @@
     }
   }
 
+  function setRegisterMode(on){
+    $("authLoginFields").style.display = on ? "none" : "block";
+    $("authRegisterFields").style.display = on ? "block" : "none";
+    $("loginBtn").disabled = on;
+    $("backToLoginBtn").style.display = on ? "block" : "none";
+    $("goRegisterBtn").textContent = on ? "Criar conta (confirmar)" : "Criar conta";
+    setMsg("authMsg", on ? "Modo cadastro: preencha Login, Nome e Senha." : "");
+  }
+
   // ======= AUTH MODE (login/register toggle) =======
-  $("goRegisterBtn").onclick = () => {
-    $("authLoginFields").style.display = "none";
-    $("authRegisterFields").style.display = "block";
-    $("loginBtn").disabled = true;
-    $("backToLoginBtn").style.display = "block";
-    setMsg("authMsg", "Modo cadastro: preencha Login, Nome e Senha.");
+  $("goRegisterBtn").onclick = async () => {
+    // Se NÃO está em modo cadastro, liga o modo cadastro
+    if($("authRegisterFields").style.display === "none"){
+      setRegisterMode(true);
+      return;
+    }
+    // Se já está em modo cadastro, confirma o cadastro
+    await register();
   };
 
   $("backToLoginBtn").onclick = () => {
-    $("authLoginFields").style.display = "block";
-    $("authRegisterFields").style.display = "none";
-    $("loginBtn").disabled = false;
-    $("backToLoginBtn").style.display = "none";
-    setMsg("authMsg", "");
+    setRegisterMode(false);
   };
 
   $("loginBtn").onclick = async () => {
@@ -380,7 +387,7 @@
       const password = $("p").value;
 
       if(!username || username.length < 3) throw new Error("Usuário inválido (min 3 chars).");
-      if(!password || password.length < 4) throw new Error("Senha inválida (min 4 chars).");
+      if(!password || password.length < 6) throw new Error("Senha inválida (min 6 chars).");
 
       const email = usernameToEmail(username);
 
@@ -413,11 +420,11 @@
 
       if(!username || username.length < 3) throw new Error("Login inválido (min 3 chars).");
       if(!display_name || display_name.length < 2) throw new Error("Nome inválido (min 2 chars).");
-      if(!password || password.length < 4) throw new Error("Senha inválida (min 4 chars).");
+      if(!password || password.length < 6) throw new Error("Senha inválida (min 6 chars).");
 
       const email = usernameToEmail(username);
 
-      const { data, error } = await sb.auth.signUp({
+      const { error } = await sb.auth.signUp({
         email,
         password,
         options: {
@@ -426,20 +433,15 @@
       });
       if(error) throw error;
 
-      setMsg("authMsg", "Conta criada! Agora volte pro login e entre.");
+      // volta pro login e já preenche o user
+      $("u").value = username;
+      $("p").value = "";
+      setRegisterMode(false);
+      setMsg("authMsg", "Conta criada! Agora faça login 😊");
     }catch(e){
       setMsg("authMsg", e?.message || "Erro ao criar conta.");
     }
   }
-
-  // Botão "Criar conta" no card vira ação de cadastro quando está em modo cadastro
-  $("goRegisterBtn").addEventListener("dblclick", (ev) => ev.preventDefault());
-  $("goRegisterBtn").addEventListener("click", async () => {
-    // Se campos de cadastro estiverem visíveis, isso é cadastro; senão, só alterna modo
-    if($("authRegisterFields").style.display !== "none"){
-      await register();
-    }
-  });
 
   // ======= LOAD PROFILE =======
   async function loadMe(){
@@ -447,13 +449,14 @@
     if(!user) throw new Error("Sessão inválida.");
 
     // profiles é criada por trigger no signup; mas pode demorar um pouco
-    const { data, error } = await supabase
+    const { data, error } = await sb
       .from("profiles")
       .select("id, username, display_name, created_at")
       .eq("id", user.id)
       .maybeSingle();
 
     if(error) throw error;
+
     if(!data){
       // fallback: tenta criar (caso trigger não tenha rodado)
       const metaU = user.user_metadata?.username || user.email?.split("@")[0] || "usuario";
@@ -543,7 +546,7 @@
 
   async function fetchCards(){
     // Usa view gossip_cards (já agrega autor, contagem de comments e reactions)
-    let q = supabase
+    let q = sb
       .from("gossip_cards")
       .select("*")
       .order("created_at", { ascending:false })
@@ -635,8 +638,7 @@
       setMsg("commentMsg","");
       showProfile(false);
 
-      // refetch o card selecionado (atualizado)
-      const { data, error } = await supabase
+      const { data, error } = await sb
         .from("gossip_cards")
         .select("*")
         .eq("id", gossipId)
@@ -644,7 +646,6 @@
       if(error) throw error;
       selected = data;
 
-      // render detalhe
       $("detailTitle").textContent = selected.title;
       $("detailBy").textContent = `Por: ${selected.author_display_name} (@${selected.author_username}) • Fonte: ${selected.source} • ${new Date(selected.created_at).toLocaleString()}`;
       $("detailText").innerHTML = withMentions(selected.details);
@@ -657,15 +658,11 @@
 
       $("moveStatusSelect").value = selected.status || "APURACAO";
 
-      // permissões: excluir só se for do dono
       const { data: { user } } = await sb.auth.getUser();
       const isMine = user?.id && selected.created_by === user.id;
       $("deleteBtn").style.display = isMine ? "inline-block" : "none";
 
-      // reações
       await renderReactions();
-
-      // comentários
       await renderComments();
 
       showDetail(true);
@@ -687,7 +684,7 @@
     const box = $("comments");
     box.innerHTML = "";
 
-    const res = await supabase
+    const res = await sb
       .from("comments")
       .select("id, body, created_at, user_id, profiles:profiles(username, display_name)")
       .eq("gossip_id", selected.id)
@@ -737,7 +734,7 @@
       setMsg("commentMsg", "Comentário enviado.");
 
       await openDetail(selected.id);
-      await refreshAll(false); // atualiza contagem no feed
+      await refreshAll(false);
     }catch(e){
       setMsg("commentMsg", e?.message || "Erro ao comentar.");
     }
@@ -748,16 +745,14 @@
     const bar = $("detailReacts");
     bar.innerHTML = "";
 
-    // contar agregadas na view
     const agg = selected.reactions || {};
 
-    // saber quais eu já reagi (para marcar botão)
     const { data: { user } } = await sb.auth.getUser();
     const uid = user?.id;
 
     let mine = [];
     if(uid){
-      const r = await supabase
+      const r = await sb
         .from("reactions")
         .select("reaction")
         .eq("gossip_id", selected.id)
@@ -783,16 +778,13 @@
     const uid = user?.id;
     if(!uid) return;
 
-    // verifica se existe
-    const ex = await supabase
+    const ex = await sb
       .from("reactions")
       .select("id")
       .eq("gossip_id", selected.id)
       .eq("user_id", uid)
       .eq("reaction", reaction)
       .maybeSingle();
-
-    if(ex.error && ex.error.code !== "PGRST116"){ /* ignore not found */ }
 
     if(ex.data?.id){
       const del = await sb.from("reactions").delete().eq("id", ex.data.id);
@@ -819,7 +811,7 @@
       const isMine = user?.id && selected.created_by === user.id;
       if(!isMine) throw new Error("Você só pode mover status das suas fofocas.");
 
-      const upd = await supabase
+      const upd = await sb
         .from("gossips")
         .update({ status: next })
         .eq("id", selected.id);
@@ -870,8 +862,7 @@
 
     $("profileStats").textContent = "Dica: o título muda automaticamente conforme você posta mais fofocas.";
 
-    // lista minhas fofocas
-    const res = await supabase
+    const res = await sb
       .from("gossip_cards")
       .select("*")
       .eq("created_by", me.id)
@@ -934,7 +925,6 @@
 
       if(scrollTop) window.scrollTo({ top: 0, behavior: "smooth" });
 
-      // se tiver selecionado, reabre para atualizar estado
       if(selected?.id){
         await openDetail(selected.id);
       }
@@ -954,7 +944,6 @@
         setAuthUI(true);
         await refreshAll(false);
       }catch(err){
-        // sessão inválida, força logout
         await sb.auth.signOut();
         session = null;
         me = null;
@@ -964,7 +953,6 @@
       setAuthUI(false);
     }
 
-    // atualiza UI quando sessão muda (login/logout em outra aba etc)
     sb.auth.onAuthStateChange(async (_event, _session) => {
       session = _session;
       if(session){
